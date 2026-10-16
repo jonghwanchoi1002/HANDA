@@ -16,7 +16,7 @@ export default function Home() {
         <header className={styles.header}>
           <Link className={styles.logo} href="/" aria-label="HANDA 홈">HANDA<span>.</span><small>BERLIN FOUNDERS COMMUNITY</small></Link>
           <nav aria-label="주 메뉴" className={styles.nav}>
-            {menus.map(([id, label]) => <Link key={id} href={["wiki", "members", "stories"].includes(id) ? `/${id}` : `#${id}`}>{label}</Link>)}
+            {menus.map(([id, label]) => <Link key={id} href={["wiki", "members", "stories", "testimonials"].includes(id) ? `/${id}` : `#${id}`}>{label}</Link>)}
           </nav>
         </header>
         <main id="main">
@@ -45,7 +45,7 @@ export default function Home() {
             <p className={styles.label}>04 — COMMUNITY JOURNAL</p><h2 id="stories-title">만나서 나눈 이야기,<br />오래 남을 기록.</h2><p className={styles.intro}>모임에서 오간 질문과 발견, 함께한 순간을 이곳에 기록합니다.</p><div className={styles.emptyStory}><span aria-hidden="true">↗</span><div><h3>우리의 이야기를 차곡차곡.</h3><p>예시 후기로 앞으로 담아갈 모임 기록을 살펴보세요.</p><Link className={styles.textLink} href="/stories">모임 후기 살펴보기 ↗</Link></div></div>
           </section>
           <section id="testimonials" className={styles.section} aria-labelledby="testimonials-title">
-            <p className={styles.label}>05 — VOICES OF HANDA</p><h2 id="testimonials-title">함께한 사람들의 목소리.</h2><div className={styles.voices}><span aria-hidden="true">“</span><div><p>HANDA에서 만난 인연과 배움.<br />참가자들의 진솔한 이야기를 담을 예정입니다.</p><small>실제 참가자 후기를 준비하고 있습니다.</small></div></div>
+            <p className={styles.label}>05 — VOICES OF HANDA</p><h2 id="testimonials-title">함께한 사람들의 목소리.</h2><div className={styles.voices}><span aria-hidden="true">“</span><div><p>HANDA에서 만난 인연과 배움.<br />참가자들의 진솔한 이야기를 담을 예정입니다.</p><small>실제 참가자 후기를 준비하고 있습니다.</small><br /><Link className={styles.textLink} href="/testimonials">참가자 이야기 살펴보기 ↗</Link></div></div>
           </section>
         </main>
       </div>
