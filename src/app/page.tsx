@@ -11,7 +11,7 @@ export default function Home() {
       <main>
         <section className={styles.hero}>
           <p className={styles.eyebrow}>작은 시작, 새로운 가능성</p>
-          <h1>생각을 넘어,<br />이제 <span>한다.</span></h1>
+          <h1>작은 시작,<br />함께 <span>한다.</span></h1>
           <p className={styles.description}>아이디어가 첫걸음이 되는 곳.<br />HANDA의 이야기를 이곳에서 시작합니다.</p>
           <a className={styles.button} href="#about">HANDA 알아보기 <span>↓</span></a>
           <div className={styles.note}>HELLO, WORLD. THIS IS HANDA.</div>
