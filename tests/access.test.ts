@@ -46,6 +46,7 @@ test("running Next.js protects wiki HTML/RSC, reads current approval and keeps o
     await checkDenied("/wiki");await checkDenied("/wiki/private-test");await checkDenied("/admin");await checkDenied("/admin/members");
     const homepage=await(await fetch(baseURL)).text();for(const text of privateValues)assert.ok(!homepage.includes(text));
     assert.ok(homepage.includes(">로그인 / 회원가입</a>"));
+    assert.ok(!homepage.includes(">회원 관리</a>"));
     for(const path of ["/members","/stories","/testimonials"])assert.equal((await fetch(baseURL+path)).status,200);
     const email="access-test@example.test",password="access-test-password-12345";
     const call=(path:string,body?:unknown)=>auth.handler(new Request(baseURL+"/api/auth"+path,{method:body?"POST":"GET",headers:{origin:baseURL,"content-type":"application/json","x-forwarded-for":"192.0.2.50"},body:body?JSON.stringify(body):undefined}));
@@ -58,6 +59,7 @@ test("running Next.js protects wiki HTML/RSC, reads current approval and keeps o
       const body = await (await fetch(baseURL + path, { headers: { cookie } })).text();
       assert.ok(body.includes(">내 계정</a>"), `${path} should show account navigation after login`);
       assert.ok(!body.includes(">로그인 / 회원가입</a>"));
+      assert.ok(!body.includes(">회원 관리</a>"));
     }
     await pool.query("UPDATE handa_auth_user SET approval_status='approved' WHERE email=$1",[email]);
     const allowed=await fetch(baseURL+"/wiki/private-test",{headers:{cookie}});assert.ok((await allowed.text()).includes(privateArticle.sections[0].paragraphs[0]));
@@ -67,7 +69,16 @@ test("running Next.js protects wiki HTML/RSC, reads current approval and keeps o
     await pool.query("UPDATE handa_auth_user SET approval_status='approved',role='admin' WHERE email=$1",[email]);
     const adminRedirect=await fetch(baseURL+"/admin",{headers:{cookie},redirect:"manual"});
     assert.ok(adminRedirect.status>=300 || (await adminRedirect.text()).includes("/admin/members"));
-    const admin=await fetch(baseURL+"/admin/members",{headers:{cookie}});assert.ok((await admin.text()).includes("회원 관리"));
+    const loginRedirect=await fetch(baseURL+"/login",{headers:{cookie},redirect:"manual"});
+    const loginBody=await loginRedirect.text();
+    assert.ok(loginRedirect.headers.get("location")==="/" || loginBody.includes('NEXT_REDIRECT;replace;/;'));
+    const adminHome=await(await fetch(baseURL,{headers:{cookie}})).text();
+    assert.ok(adminHome.includes(">회원 관리</a>"));
+    const account=await(await fetch(baseURL+"/account",{headers:{cookie}})).text();
+    assert.ok(account.includes('aria-label="계정 메뉴"'));
+    assert.ok(account.includes(">회원 관리</a>"));
+    const admin=await fetch(baseURL+"/admin/members",{headers:{cookie}});const adminBody=await admin.text();assert.ok(adminBody.includes("회원 관리"));
+    assert.ok(!adminBody.includes('>비즈니스 위키</a>'));
   } finally {
     child.kill("SIGTERM");
     for(let attempt=0;attempt<30&&child.exitCode===null;attempt++)await delay(100);

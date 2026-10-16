@@ -20,7 +20,7 @@ export default async function MembersAdminPage({ searchParams }: { searchParams:
   const result = await listManagedMembers(getDatabase(),filter);
   const labels: Record<string,string> = {pending:"승인 대기",approved:"이용 승인",rejected:"거절·이용 중지"};
   const pageURL = (page:number) => `/admin/members?${new URLSearchParams({q:filter.query,status:filter.status,role:filter.role,page:String(page)})}`;
-  return <AccountShell wide><p className={styles.eyebrow}>HANDA ADMIN</p><h1>회원 관리</h1><p className={styles.intro}>가입 회원을 검색하고 이용 승인과 관리자 권한을 관리합니다.</p><div className={styles.links}><Link href="/account">내 계정으로</Link><Link href="/wiki" prefetch={false}>비즈니스 위키</Link></div>
+  return <AccountShell wide><p className={styles.eyebrow}>HANDA ADMIN</p><h1>회원 관리</h1><p className={styles.intro}>가입 회원을 검색하고 이용 승인과 관리자 권한을 관리합니다.</p><div className={styles.links}><Link href="/account">내 계정으로</Link></div>
     <form action="/admin/members" className={management.filters}>
       <label>이름 또는 이메일<input type="search" name="q" defaultValue={filter.query} placeholder="회원 검색" maxLength={200}/></label>
       <label>이용 상태<select name="status" defaultValue={filter.status}><option value="all">전체 상태</option><option value="pending">승인 대기</option><option value="approved">이용 승인</option><option value="rejected">거절·이용 중지</option></select></label>

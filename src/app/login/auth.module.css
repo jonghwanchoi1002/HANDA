@@ -1,7 +1,7 @@
 .shell { min-height: 100vh; background: #fafbf8; color: #202b25; }
 .header { background: #202a25; color: white; padding: 26px max(5vw, calc((100vw - 1200px)/2)); display: flex; justify-content: space-between; align-items: center; gap: 20px; }
 .logo { font-size: 30px; font-weight: 900; letter-spacing: -1px; }
-.header > a:last-child { font-size: 13px; }
+.headerNav { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 16px; font-size: 13px; }
 .main { width: min(90%, 540px); margin: 60px auto; padding-bottom: 60px; }
 .wide { width: min(92%, 1050px); }
 .eyebrow { font-size: 11px; letter-spacing: 2px; color: #677c55; font-weight: bold; }

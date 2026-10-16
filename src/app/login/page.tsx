@@ -10,7 +10,7 @@ export const instant = false;
 
 export const metadata: Metadata = { title: "로그인 · 가입 | HANDA", robots: { index: false, follow: false } };
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ verified?: string; error?: string }> }) {
-  if (await getCurrentUser()) redirect("/account");
+  if (await getCurrentUser()) redirect("/");
   const parameters = await searchParams;
   const availability = authAvailability();
   return <AccountShell><p className={styles.eyebrow}>HANDA COMMUNITY</p><h1>함께하는 첫걸음.</h1><p className={styles.intro}>소개와 모임 후기는 누구나 볼 수 있습니다.<br />비즈니스 위키는 승인된 회원에게 열려 있습니다.</p>

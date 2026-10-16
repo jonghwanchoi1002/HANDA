@@ -1,10 +1,11 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { canManageMembers } from "@/lib/auth/permissions";
 import { getCurrentUser } from "@/lib/auth/session";
 
 async function AccountLink() {
   const user = await getCurrentUser();
-  return <Link href={user ? "/account" : "/login"} prefetch={false}>{user ? "내 계정" : "로그인 / 회원가입"}</Link>;
+  return <>{canManageMembers(user) && <Link href="/admin/members" prefetch={false}>회원 관리</Link>}<Link href={user ? "/account" : "/login"} prefetch={false}>{user ? "내 계정" : "로그인 / 회원가입"}</Link></>;
 }
 
 export default function AccountNav() {
