@@ -1,3 +1,4 @@
+import styles from "./account-nav.module.css";
 import { Suspense } from "react";
 import Link from "next/link";
 import { canManageMembers } from "@/lib/auth/permissions";
@@ -9,5 +10,5 @@ async function AccountLink() {
 }
 
 export default function AccountNav() {
-  return <Suspense fallback={<span role="status">계정 확인 중…</span>}><AccountLink /></Suspense>;
+  return <Suspense fallback={<span className={styles.status} role="status">계정 확인 중…</span>}><AccountLink /></Suspense>;
 }
