@@ -5,6 +5,9 @@ import { authAvailability } from "@/lib/auth/server";
 import AccountShell from "@/components/account-shell";
 import AuthForm from "./auth-form";
 import styles from "./auth.module.css";
+// 요청 시 DB 또는 세션을 확인하므로 서버 응답을 기다립니다.
+export const instant = false;
+
 export const metadata: Metadata = { title: "로그인 · 가입 | HANDA", robots: { index: false, follow: false } };
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ verified?: string; error?: string }> }) {
   if (await getCurrentUser()) redirect("/account");

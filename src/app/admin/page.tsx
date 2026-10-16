@@ -5,6 +5,9 @@ import { getDatabase } from "@/lib/content/database";
 import AccountShell from "@/components/account-shell";
 import MemberActions from "./member-actions";
 import styles from "@/app/login/auth.module.css";
+// 요청 시 DB 또는 세션을 확인하므로 서버 응답을 기다립니다.
+export const instant = false;
+
 export const metadata: Metadata = { title: "회원 승인 관리 | HANDA", robots: { index: false, follow: false } };
 export default async function AdminPage() {
   await requireAdmin();

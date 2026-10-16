@@ -96,6 +96,10 @@ test("actual migration, seed and check commands work over PostgreSQL protocol an
   const env = { ...process.env, DATABASE_URL: "postgresql://postgres@127.0.0.1:55439/postgres", CONTENT_SOURCE: "database" };
   const command = (file: string) => run(process.execPath, ["--import", "tsx", file], { env, timeout: 20000 });
   try {
+    await assert.rejects(command("scripts/auth-check.ts"), (error: unknown) => {
+      assert.match((error as { stdout: string }).stdout, /handa_auth_user: MISSING/);
+      return true;
+    });
     await command("scripts/db-migrate.ts");
     const second = await command("scripts/db-migrate.ts");
     assert.match(second.stdout, /Already applied/);
@@ -104,5 +108,7 @@ test("actual migration, seed and check commands work over PostgreSQL protocol an
     assert.match(repeat.stdout, /Added 0 content entries/);
     const check = await command("scripts/db-check.ts");
     assert.match(check.stdout, /Database connection and public content validation passed/);
+    const authCheck = await command("scripts/auth-check.ts");
+    assert.match(authCheck.stdout, /Authentication tables are present/);
   } finally { await server.stop(); await db.close(); }
 });

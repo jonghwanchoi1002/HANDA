@@ -3,6 +3,9 @@ import { getPublishedWikiArticles } from "@/lib/wiki";
 import ArticleList from "./article-list";
 import styles from "./wiki.module.css";
 
+// 요청 시 DB 또는 세션을 확인하므로 서버 응답을 기다립니다.
+export const instant = false;
+
 export const metadata: Metadata = { title: "비즈니스 위키 | HANDA", description: "창업 준비부터 운영과 성장까지, 함께 쌓는 HANDA의 비즈니스 노하우." };
 
 export default async function WikiPage() {

@@ -1,7 +1,7 @@
 import { loadEnvConfig } from "@next/env";
 import { getDatabase, closeDatabase } from "../src/lib/content/database";
 import { z } from "zod";
-loadEnvConfig(process.cwd());
+loadEnvConfig(process.cwd(), process.env.NODE_ENV !== "production");
 async function main() {
   const email = z.email().parse(process.argv[2]?.trim().toLowerCase());
   const client = await getDatabase().connect();

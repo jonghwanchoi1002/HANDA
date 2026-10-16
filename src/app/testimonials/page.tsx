@@ -4,6 +4,9 @@ import Image from "next/image";
 import { getPublishedTestimonials } from "@/lib/testimonials";
 import styles from "./testimonials.module.css";
 
+// 요청 시 DB 또는 세션을 확인하므로 서버 응답을 기다립니다.
+export const instant = false;
+
 export const metadata: Metadata = {
   title: "참가자 이야기 | HANDA",
   description: "연결과 배움, 그리고 성장. HANDA와 함께하는 사람들의 목소리를 담는 공간입니다.",

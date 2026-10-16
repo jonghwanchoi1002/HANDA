@@ -8,6 +8,9 @@ const menus = [
 ];
 
 
+// 요청 시 DB 또는 세션을 확인하므로 서버 응답을 기다립니다.
+export const instant = false;
+
 export default async function Home() {
   const home = await getHomeContent();
   return (

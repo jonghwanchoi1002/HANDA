@@ -6,6 +6,9 @@ import { canReadWiki, canManageMembers } from "@/lib/auth/permissions";
 import AccountShell from "@/components/account-shell";
 import SignOut from "@/components/sign-out";
 import styles from "@/app/login/auth.module.css";
+// 요청 시 DB 또는 세션을 확인하므로 서버 응답을 기다립니다.
+export const instant = false;
+
 export const metadata: Metadata = { title: "내 계정 | HANDA", robots: { index: false, follow: false } };
 export default async function AccountPage() {
   const user = await getCurrentUser(); if (!user) redirect("/login");
