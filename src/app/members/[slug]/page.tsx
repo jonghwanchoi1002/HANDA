@@ -1,13 +1,14 @@
+import { memberRecords } from "@/data/members";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { getPublishedMembers, getPublishedMember } from "@/lib/members";
+import { getPublishedMember } from "@/lib/members";
 import styles from "../members.module.css";
 
 type Props = { params: Promise<{ slug: string }> };
 export async function generateStaticParams() {
-  return (await getPublishedMembers()).map((member) => ({ slug: member.slug }));
+  return memberRecords.filter((member) => member.status === "published").map((member) => ({ slug: member.slug }));
 }
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const member = await getPublishedMember((await params).slug);

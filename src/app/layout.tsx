@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import "./globals.css";
 
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="ko">
-      <body>{children}</body>
+      <body><Suspense fallback={<main style={{ padding: "64px 24px" }}><p role="status">HANDA 콘텐츠를 불러오는 중입니다.</p></main>}>{children}</Suspense></body>
     </html>
   );
 }

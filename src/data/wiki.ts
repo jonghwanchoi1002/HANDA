@@ -1,17 +1,11 @@
-export type WikiArticle = {
-  slug: string;
-  category: string;
-  title: string;
-  summary: string;
-  sections: { title: string; paragraphs: string[] }[];
-};
+import type { WikiArticle } from "@/types/wiki";
 
 // DB 연결 전 화면 개발용 예시 콘텐츠입니다.
 export const wikiArticles: WikiArticle[] = [
   {
     slug: "first-business-checklist", category: "창업 준비", title: "사업을 시작하기 전, 정리할 다섯 가지 질문",
     summary: "아이디어를 구체적인 계획으로 바꾸기 위한 첫 번째 체크리스트입니다.",
-    sections: [
+    isExample: true, sections: [
       { title: "누구의 어떤 문제를 해결하나요?", paragraphs: ["사업 아이디어를 한 문장으로 적어보세요. 누구를 위한 서비스인지, 그 사람이 현재 어떤 불편을 겪고 있는지 구체적으로 써보는 것이 시작입니다.", "예를 들어 ‘모두를 위한 서비스’보다 ‘첫 고객을 찾는 작은 가게를 위한 서비스’가 다음 행동을 정하기 쉽습니다."] },
       { title: "지금 확인할 수 있는 가정은 무엇인가요?", paragraphs: ["고객이 필요로 할 것이라는 생각과 실제 반응은 다를 수 있습니다. 잠재 고객과 대화하고, 작은 시제품으로 반응을 확인하는 방법을 계획해 보세요."] },
       { title: "비용, 시간, 도움을 어디까지 준비했나요?", paragraphs: ["초기 비용과 매달 필요한 비용을 나누어 적습니다. 이어서 첫 실험의 기한, 성공 여부를 판단할 기준, 함께 의논할 사람을 정해보세요.", "정리할 질문은 다섯 가지입니다. 고객은 누구인가요? 문제는 무엇인가요? 무엇을 먼저 실험하나요? 얼마의 시간과 비용이 필요한가요? 누구에게 도움을 구할 수 있나요?"] },
@@ -20,7 +14,7 @@ export const wikiArticles: WikiArticle[] = [
   {
     slug: "organize-business-records", category: "사업 운영", title: "흩어진 영수증과 문서, 정리 습관부터",
     summary: "작은 사업도 처음부터 기록 체계를 만들어두면 다음 일이 쉬워집니다.",
-    sections: [
+    isExample: true, sections: [
       { title: "찾기 쉬운 폴더 구조 만들기", paragraphs: ["계약서, 영수증, 청구서 등 문서 종류를 나누고 연도와 월을 기준으로 보관해 보세요. 파일 이름에도 날짜와 거래 상대를 적으면 나중에 찾기 쉽습니다."] },
       { title: "기록하는 시간을 정하기", paragraphs: ["일주일에 한 번처럼 정해진 시간에 문서를 모으고 빠진 항목을 확인합니다. 어떤 방식이든 꾸준히 유지할 수 있는 단순한 체계가 좋습니다."] },
       { title: "전문가에게 물어볼 질문 모으기", paragraphs: ["세금 처리나 법정 보관 의무는 개인의 상황과 문서 종류에 따라 다를 수 있습니다. 판단이 필요한 항목은 별도로 표시하고 자격 있는 전문가에게 확인하세요. 이 글은 세무·법률 지침이 아닌 문서 정리 예시입니다."] },
@@ -29,7 +23,7 @@ export const wikiArticles: WikiArticle[] = [
   {
     slug: "first-customer-conversation", category: "마케팅·네트워킹", title: "첫 고객과의 대화에서 배울 것들",
     summary: "설명하기보다 듣기. 실제 경험을 묻는 질문으로 시작해 보세요.",
-    sections: [
+    isExample: true, sections: [
       { title: "의견보다 경험을 물어보세요", paragraphs: ["‘이 서비스가 좋을까요?’ 대신 ‘최근 이 문제를 겪었을 때 어떻게 해결했나요?’라고 물어보세요. 실제 행동과 어려움을 구체적으로 이해하는 데 도움이 됩니다."] },
       { title: "반복해서 들리는 말을 기록하세요", paragraphs: ["대화가 끝난 뒤에는 기억에 의존하지 말고 핵심 내용을 짧게 기록하세요. 개인정보를 수집하거나 대화를 녹음할 때는 목적과 동의 등 관련 요건을 먼저 확인하세요."] },
       { title: "배운 내용으로 다음 실험 정하기", paragraphs: ["여러 대화에서 반복되는 어려움을 찾아 작은 개선을 정해보세요. 무엇을 바꿀지, 누구에게 다시 보여줄지, 어떤 반응을 살필지 적으면 다음 행동으로 이어집니다."] },

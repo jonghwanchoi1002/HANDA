@@ -1,13 +1,14 @@
+import { storyRecords } from "@/data/stories";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getPublishedStories, getPublishedStory, formatEventDate } from "@/lib/stories";
+import { getPublishedStory, formatEventDate } from "@/lib/stories";
 import StoryPhoto from "@/components/story-photo";
 import styles from "../stories.module.css";
 
 type Props = { params: Promise<{ slug: string }> };
 export async function generateStaticParams() {
-  return (await getPublishedStories()).map((story) => ({ slug: story.slug }));
+  return storyRecords.filter((story) => story.status === "published").map((story) => ({ slug: story.slug }));
 }
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const story = await getPublishedStory((await params).slug);
