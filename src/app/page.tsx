@@ -16,7 +16,7 @@ export default function Home() {
         <header className={styles.header}>
           <Link className={styles.logo} href="/" aria-label="HANDA 홈">HANDA<span>.</span><small>BERLIN FOUNDERS COMMUNITY</small></Link>
           <nav aria-label="주 메뉴" className={styles.nav}>
-            {menus.map(([id, label]) => <Link key={id} href={id === "wiki" ? "/wiki" : `#${id}`}>{label}</Link>)}
+            {menus.map(([id, label]) => <Link key={id} href={id === "wiki" || id === "members" ? `/${id}` : `#${id}`}>{label}</Link>)}
           </nav>
         </header>
         <main id="main">
@@ -34,7 +34,7 @@ export default function Home() {
           </section>
           <section id="members" className={`${styles.section} ${styles.soft}`} aria-labelledby="members-title">
             <p className={styles.label}>02 — OUR PEOPLE</p><h2 id="members-title">다른 경험, 같은 도전.</h2><p className={styles.intro}>서로의 가능성을 넓혀줄 HANDA의 멤버들을 소개할 공간입니다.</p>
-            <div className={styles.memberPlaceholder}><span className={styles.symbol} aria-hidden="true">✳</span><div><h3>곧, 우리의 이야기를 만나보세요.</h3><p>멤버의 사진과 사업 분야, 소개를 준비하고 있습니다.</p></div><span className={styles.badge}>소개 준비 중</span></div>
+            <div className={styles.memberPlaceholder}><span className={styles.symbol} aria-hidden="true">✳</span><div><h3>곧, 우리의 이야기를 만나보세요.</h3><p>멤버의 사진과 사업 분야, 소개를 준비하고 있습니다.</p></div><Link className={styles.textLink} href="/members">멤버 만나보기 ↗</Link></div>
           </section>
           <section id="wiki" className={styles.section} aria-labelledby="wiki-title">
             <div className={styles.sectionHeading}><div><p className={styles.label}>03 — BUSINESS WIKI</p><h2 id="wiki-title">경험이 쌓이면, 길이 됩니다.</h2></div><Link className={styles.textLink} href="/wiki">위키 전체 보기 ↗</Link></div>
