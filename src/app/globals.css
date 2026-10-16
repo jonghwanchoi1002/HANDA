@@ -1,0 +1,8 @@
+:root { color-scheme: light; --background: #faf9f6; --foreground: #202b25; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--background); color: var(--foreground); font-family: Arial, "Noto Sans KR", sans-serif; -webkit-font-smoothing: antialiased; }
+a { color: inherit; text-decoration: none; }
+::selection { background: #d6e8a7; }
+a:focus-visible { outline: 3px solid #5c762c; outline-offset: 6px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
