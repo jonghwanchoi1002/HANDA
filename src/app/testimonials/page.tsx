@@ -1,3 +1,4 @@
+import AccountNav from "@/components/account-nav";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
@@ -16,7 +17,7 @@ export default async function TestimonialsPage() {
   const testimonials = await getPublishedTestimonials();
   return <div className={styles.shell}>
     <a className={styles.skip} href="#testimonials-main">본문으로 바로가기</a>
-    <header className={styles.header}><Link href="/" className={styles.logo}>HANDA<span>.</span></Link><nav aria-label="주 메뉴"><Link href="/#about">HANDA 소개</Link><Link href="/members">멤버</Link><Link href="/wiki">비즈니스 위키</Link><Link href="/stories">모임 후기</Link><Link href="/testimonials" aria-current="page">참가자 이야기</Link><Link href="/account" prefetch={false}>내 계정</Link></nav></header>
+    <header className={styles.header}><Link href="/" className={styles.logo}>HANDA<span>.</span></Link><nav aria-label="주 메뉴"><Link href="/#about">HANDA 소개</Link><Link href="/members">멤버</Link><Link href="/wiki">비즈니스 위키</Link><Link href="/stories">모임 후기</Link><Link href="/testimonials" aria-current="page">참가자 이야기</Link><AccountNav /></nav></header>
     <main id="testimonials-main" className={styles.main}>
       <section className={styles.hero}><p className={styles.eyebrow}>VOICES OF HANDA</p><h1>함께한 사람들의<br /><span>목소리를 담습니다.</span></h1><p>연결되는 순간, 서로에게 배우는 시간.<br />HANDA와 함께하는 사람들의 이야기를 모아갑니다.</p></section>
       {testimonials.some((item) => item.isExample) && <aside className={styles.notice}>아래 예시 문구와 프로필은 화면 개발을 위해 만든 가상의 내용입니다. 실제 참가자의 추천사가 아닙니다.</aside>}

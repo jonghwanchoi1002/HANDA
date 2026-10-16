@@ -1,3 +1,4 @@
+import AccountNav from "@/components/account-nav";
 import Link from "next/link";
 import { getHomeContent } from "@/lib/home";
 import styles from "./page.module.css";
@@ -21,7 +22,7 @@ export default async function Home() {
           <Link className={styles.logo} href="/" aria-label="HANDA 홈">HANDA<span>.</span><small>BERLIN FOUNDERS COMMUNITY</small></Link>
           <nav aria-label="주 메뉴" className={styles.nav}>
             {menus.map(([id, label]) => <Link key={id} href={["wiki", "members", "stories", "testimonials"].includes(id) ? `/${id}` : `#${id}`}>{label}</Link>)}
-          <Link href="/account" prefetch={false}>로그인 / 내 계정</Link></nav>
+          <AccountNav /></nav>
         </header>
         <main id="main">
           <section className={styles.hero} aria-labelledby="hero-title">

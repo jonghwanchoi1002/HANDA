@@ -45,6 +45,7 @@ test("running Next.js protects wiki HTML/RSC, reads current approval and keeps o
     }
     await checkDenied("/wiki");await checkDenied("/wiki/private-test");await checkDenied("/admin");
     const homepage=await(await fetch(baseURL)).text();for(const text of privateValues)assert.ok(!homepage.includes(text));
+    assert.ok(homepage.includes(">로그인 / 회원가입</a>"));
     for(const path of ["/members","/stories","/testimonials"])assert.equal((await fetch(baseURL+path)).status,200);
     const email="access-test@example.test",password="access-test-password-12345";
     const call=(path:string,body?:unknown)=>auth.handler(new Request(baseURL+"/api/auth"+path,{method:body?"POST":"GET",headers:{origin:baseURL,"content-type":"application/json","x-forwarded-for":"192.0.2.50"},body:body?JSON.stringify(body):undefined}));
@@ -53,6 +54,11 @@ test("running Next.js protects wiki HTML/RSC, reads current approval and keeps o
     const signedIn=await call("/sign-in/email",{email,password});assert.equal(signedIn.status,200);
     const cookie=signedIn.headers.getSetCookie().map(value=>value.split(";")[0]).join("; ");
     await checkDenied("/wiki/private-test",cookie);await checkDenied("/admin",cookie);
+    for (const path of ["/", "/members", "/stories", "/testimonials"]) {
+      const body = await (await fetch(baseURL + path, { headers: { cookie } })).text();
+      assert.ok(body.includes(">내 계정</a>"), `${path} should show account navigation after login`);
+      assert.ok(!body.includes(">로그인 / 회원가입</a>"));
+    }
     await pool.query("UPDATE handa_auth_user SET approval_status='approved' WHERE email=$1",[email]);
     const allowed=await fetch(baseURL+"/wiki/private-test",{headers:{cookie}});assert.ok((await allowed.text()).includes(privateArticle.sections[0].paragraphs[0]));
     assert.ok(!allowed.headers.get("cache-control")?.includes("public"));
