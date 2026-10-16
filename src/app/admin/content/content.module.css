@@ -1,0 +1,26 @@
+.tabs { display: flex; gap: 12px 22px; flex-wrap: wrap; margin: 28px 0; }
+.tabs a { padding: 8px 0; border-bottom: 2px solid transparent; }
+.tabs a[aria-current] { border-color: #425d32; font-weight: 700; }
+.toolbar { display: flex; gap: 16px; flex-wrap: wrap; align-items: end; margin: 24px 0; }
+.toolbar label { display: grid; gap: 8px; }
+.toolbar input, .toolbar select { padding: 12px; border: 1px solid #aebca3; border-radius: 4px; font: inherit; background: white; color: inherit; }
+.entries { display: grid; gap: 16px; }
+.entry { display: flex; justify-content: space-between; gap: 24px; align-items: center; background: white; border: 1px solid #dbe1d4; border-radius: 8px; padding: 24px; }
+.entry h2 { font-size: 20px; margin: 0 0 12px; overflow-wrap: anywhere; }
+.entry p { font-size: 13px; color: #626e64; margin: 0; }
+.entry a, .pagination a { text-decoration: underline; text-underline-offset: 4px; white-space: nowrap; }
+.pagination { display: flex; gap: 24px; margin: 28px 0; }
+.editor { display: grid; gap: 24px; margin-top: 24px; }
+.editor fieldset { min-width: 0; margin: 0; padding: 24px; border: 1px solid #dbe1d4; background: white; border-radius: 8px; display: grid; gap: 18px; }
+.editor legend { font-weight: 700; }
+.field { display: grid; gap: 8px; font-size: 14px; }
+.field input, .field textarea, .field select { width: 100%; min-width: 0; padding: 12px; border: 1px solid #aebca3; border-radius: 4px; font: inherit; color: inherit; background: white; }
+.field textarea { resize: vertical; line-height: 1.8; }
+.field input:focus-visible, .field textarea:focus-visible, .field select:focus-visible { outline: 3px solid #5c762c; outline-offset: 3px; }
+.check { display: flex; align-items: start; gap: 10px; font-size: 14px; line-height: 1.7; }
+.check input { margin-top: 5px; }
+.help { font-size: 13px; color: #626e64; line-height: 1.8; }
+.group { display: grid; gap: 16px; border-top: 1px solid #dbe1d4; padding-top: 18px; }
+.controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.result { padding: 18px; background: #eef1e7; line-height: 1.8; }
+@media (max-width: 600px) { .entry { padding: 20px; } .editor fieldset { padding: 18px; } .toolbar label { width: 100%; } }

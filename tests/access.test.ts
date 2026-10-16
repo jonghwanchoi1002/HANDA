@@ -14,7 +14,7 @@ import { parseContent } from "../src/lib/content/schema";
 
 test("running Next.js protects wiki HTML/RSC, reads current approval and keeps other pages public", {timeout:60000}, async () => {
   const db=new PGlite();
-  for (const name of ["001_content.sql","002_member_auth.sql","003_member_management.sql"]) await db.exec(await readFile(new URL(`../database/migrations/${name}`,import.meta.url),"utf8"));
+  for (const name of ["001_content.sql","002_member_auth.sql","003_member_management.sql","004_content_management.sql"]) await db.exec(await readFile(new URL(`../database/migrations/${name}`,import.meta.url),"utf8"));
   const socket=new PGLiteSocketServer({db,host:"127.0.0.1",port:55445,maxConnections:20});await socket.start();
   const databaseURL="postgresql://postgres@127.0.0.1:55445/postgres";
   const pool=new Pool({connectionString:databaseURL,max:1});
@@ -43,7 +43,7 @@ test("running Next.js protects wiki HTML/RSC, reads current approval and keeps o
         assert.ok(response.status>=300||body.includes("NEXT_REDIRECT"),`${path} should redirect unauthorised readers`);
       }
     }
-    await checkDenied("/wiki");await checkDenied("/wiki/private-test");await checkDenied("/admin");await checkDenied("/admin/members");
+    await checkDenied("/wiki");await checkDenied("/wiki/private-test");await checkDenied("/admin");await checkDenied("/admin/members");await checkDenied("/admin/content");await checkDenied("/admin/content/wiki/new");
     const homepage=await(await fetch(baseURL)).text();for(const text of privateValues)assert.ok(!homepage.includes(text));
     assert.ok(homepage.includes(">로그인 / 회원가입</a>"));
     assert.ok(!homepage.includes(">회원 관리</a>"));
@@ -54,7 +54,7 @@ test("running Next.js protects wiki HTML/RSC, reads current approval and keeps o
     await auth.handler(new Request(mails.at(-1)!.text.match(/https?:\/\/\S+/)![0]));
     const signedIn=await call("/sign-in/email",{email,password});assert.equal(signedIn.status,200);
     const cookie=signedIn.headers.getSetCookie().map(value=>value.split(";")[0]).join("; ");
-    await checkDenied("/wiki/private-test",cookie);await checkDenied("/admin",cookie);
+    await checkDenied("/wiki/private-test",cookie);await checkDenied("/admin",cookie);await checkDenied("/admin/content",cookie);await checkDenied("/admin/content/wiki/private-test",cookie);
     for (const path of ["/", "/members", "/stories", "/testimonials"]) {
       const body = await (await fetch(baseURL + path, { headers: { cookie } })).text();
       assert.ok(body.includes(">내 계정</a>"), `${path} should show account navigation after login`);
@@ -77,6 +77,7 @@ test("running Next.js protects wiki HTML/RSC, reads current approval and keeps o
     const account=await(await fetch(baseURL+"/account",{headers:{cookie}})).text();
     assert.ok(account.includes('aria-label="계정 메뉴"'));
     assert.ok(account.includes(">회원 관리</a>"));
+    const editor=await fetch(baseURL+"/admin/content/wiki/private-test",{headers:{cookie}});assert.ok((await editor.text()).includes("PRIVATE_TITLE_93847"));
     const admin=await fetch(baseURL+"/admin/members",{headers:{cookie}});const adminBody=await admin.text();assert.ok(adminBody.includes("회원 관리"));
     assert.ok(!adminBody.includes('>비즈니스 위키</a>'));
   } finally {

@@ -6,7 +6,7 @@ import { getCurrentUser } from "@/lib/auth/session";
 
 async function AccountLink() {
   const user = await getCurrentUser();
-  return <>{canManageMembers(user) && <Link href="/admin/members" prefetch={false}>회원 관리</Link>}<Link href={user ? "/account" : "/login"} prefetch={false}>{user ? "내 계정" : "로그인 / 회원가입"}</Link></>;
+  return <>{canManageMembers(user) && <><Link href="/admin/content" prefetch={false}>콘텐츠 관리</Link><Link href="/admin/members" prefetch={false}>회원 관리</Link></>}<Link href={user ? "/account" : "/login"} prefetch={false}>{user ? "내 계정" : "로그인 / 회원가입"}</Link></>;
 }
 
 export default function AccountNav() {

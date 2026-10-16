@@ -5,7 +5,7 @@ import { canManageMembers } from "@/lib/auth/permissions";
 
 async function AdminLink() {
   const user = await getCurrentUser();
-  return canManageMembers(user) ? <Link href="/admin/members" prefetch={false}>회원 관리</Link> : null;
+  return canManageMembers(user) ? <><Link href="/admin/content" prefetch={false}>콘텐츠 관리</Link><Link href="/admin/members" prefetch={false}>회원 관리</Link></> : null;
 }
 
 export default function AdminNav() {

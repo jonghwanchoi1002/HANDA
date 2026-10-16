@@ -15,6 +15,7 @@
     "test:auth": "tsx --test tests/auth.test.ts",
     "test:access": "npm run build && tsx --test tests/access.test.ts",
     "auth:check": "tsx scripts/auth-check.ts",
+    "test:content": "tsx --test tests/content-management.test.ts",
     "test:members": "tsx --test tests/membership.test.ts"
   },
   "dependencies": {
