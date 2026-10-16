@@ -39,3 +39,14 @@ npm start -- --hostname 0.0.0.0
 `npm start`는 먼저 `npm run build`가 성공해야 합니다. 개발할 때는 `npm run dev`를 사용하세요.
 현재 첫 화면과 소개 영역만 구현되어 있으며 로그인이나 데이터 저장 기능은 없습니다.
 Neon 연결 시 서버에서만 DB에 접근하고, 연결 문자열은 `.env.local`에 보관하세요. 비밀 값은 Git에 올리지 않습니다.
+
+## 비즈니스 위키
+
+- `/wiki`: 예시 글 목록, 제목·요약·카테고리 검색, 카테고리 필터
+- `/wiki/first-business-checklist` 등: 글 상세 화면과 목차
+- `src/data/wiki.ts`: 예시 글 데이터입니다. 글을 추가하려면 고유한 `slug`, 카테고리, 제목, 요약, 본문 섹션을 추가합니다.
+- `src/app/wiki/article-list.tsx`: 검색과 필터를 처리하는 클라이언트 컴포넌트입니다.
+- `src/app/wiki/[slug]/page.tsx`: URL의 `slug`로 해당 글을 표시합니다. 없는 글은 404 화면을 표시합니다.
+- `src/app/wiki/wiki.module.css`: 위키 목록과 글 상세 화면 스타일입니다.
+
+현재 DB, 글쓰기, 수정 기능은 없습니다. 예시 글은 실제 커뮤니티의 검증된 노하우가 아니며, 화면 개발용입니다.
