@@ -1,11 +1,5 @@
 .shell { background: #fafbf8; color: #202b25; min-height: 100vh; }
-.header, .footer { padding: 28px max(5vw, calc((100vw - 1200px)/2)); display: flex; align-items: center; justify-content: space-between; gap: 24px; }
-.header { background: #202a25; color: white; }
-.logo { font-size: 32px; font-weight: 900; letter-spacing: -1.5px; }
-.logo span { color: #ff653e; }
-.header nav { display: flex; gap: 26px; font-size: 14px; }
-.header a:hover { color: #ffaf98; }
-.header a[aria-current] { border-bottom: 1px solid #b9cca4; padding-bottom: 6px; }
+.footer { padding: 28px max(5vw, calc((100vw - 1200px)/2)); display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .skip { position: fixed; top: 8px; left: 8px; z-index: 10; padding: 12px; background: white; transform: translateY(-150%); }
 .skip:focus { transform: translateY(0); }
 .main { max-width: 1200px; margin: auto; padding: 65px 0 100px; width: 90%; }
@@ -53,4 +47,4 @@
 .body p { color: #49544b; line-height: 2; font-size: 16px; word-break: keep-all; }
 .articleEnd { border-top: 1px solid #dbe1d4; padding-top: 24px; font-size: 14px; }
 @media (max-width: 950px) { .toolbar { align-items: stretch; flex-direction: column; } .search { min-width: 0; max-width: 420px; } .grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 600px) { .header { flex-direction: column; align-items: start; padding: 24px; gap: 20px; } .header nav { gap: 20px; font-size: 12px; flex-wrap: wrap; } .main { width: auto; padding: 40px 24px 65px; } .hero h1 { letter-spacing: -1.5px; font-size: 36px; } .grid { grid-template-columns: 1fr; } .notice { padding: 16px; } .card { padding: 24px; } .footer { padding: 28px 24px; flex-wrap: wrap; } .footer > span:last-child { width: 100%; } .body h2 { font-size: 22px; } .contents { padding: 22px; } }
+@media (max-width: 600px) {   .main { width: auto; padding: 40px 24px 65px; } .hero h1 { letter-spacing: -1.5px; font-size: 36px; } .grid { grid-template-columns: 1fr; } .notice { padding: 16px; } .card { padding: 24px; } .footer { padding: 28px 24px; flex-wrap: wrap; } .footer > span:last-child { width: 100%; } .body h2 { font-size: 22px; } .contents { padding: 22px; } }
