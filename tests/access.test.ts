@@ -14,7 +14,7 @@ import { parseContent } from "../src/lib/content/schema";
 
 test("running Next.js protects wiki HTML/RSC, reads current approval and keeps other pages public", {timeout:60000}, async () => {
   const db=new PGlite();
-  for (const name of ["001_content.sql","002_member_auth.sql"]) await db.exec(await readFile(new URL(`../database/migrations/${name}`,import.meta.url),"utf8"));
+  for (const name of ["001_content.sql","002_member_auth.sql","003_member_management.sql"]) await db.exec(await readFile(new URL(`../database/migrations/${name}`,import.meta.url),"utf8"));
   const socket=new PGLiteSocketServer({db,host:"127.0.0.1",port:55445,maxConnections:20});await socket.start();
   const databaseURL="postgresql://postgres@127.0.0.1:55445/postgres";
   const pool=new Pool({connectionString:databaseURL,max:1});
@@ -43,7 +43,7 @@ test("running Next.js protects wiki HTML/RSC, reads current approval and keeps o
         assert.ok(response.status>=300||body.includes("NEXT_REDIRECT"),`${path} should redirect unauthorised readers`);
       }
     }
-    await checkDenied("/wiki");await checkDenied("/wiki/private-test");await checkDenied("/admin");
+    await checkDenied("/wiki");await checkDenied("/wiki/private-test");await checkDenied("/admin");await checkDenied("/admin/members");
     const homepage=await(await fetch(baseURL)).text();for(const text of privateValues)assert.ok(!homepage.includes(text));
     assert.ok(homepage.includes(">로그인 / 회원가입</a>"));
     for(const path of ["/members","/stories","/testimonials"])assert.equal((await fetch(baseURL+path)).status,200);
@@ -65,7 +65,9 @@ test("running Next.js protects wiki HTML/RSC, reads current approval and keeps o
     await checkDenied("/admin",cookie);
     await pool.query("UPDATE handa_auth_user SET approval_status='rejected' WHERE email=$1",[email]);await checkDenied("/wiki/private-test",cookie);
     await pool.query("UPDATE handa_auth_user SET approval_status='approved',role='admin' WHERE email=$1",[email]);
-    const admin=await fetch(baseURL+"/admin",{headers:{cookie}});assert.ok((await admin.text()).includes("회원 승인 관리"));
+    const adminRedirect=await fetch(baseURL+"/admin",{headers:{cookie},redirect:"manual"});
+    assert.ok(adminRedirect.status>=300 || (await adminRedirect.text()).includes("/admin/members"));
+    const admin=await fetch(baseURL+"/admin/members",{headers:{cookie}});assert.ok((await admin.text()).includes("회원 관리"));
   } finally {
     child.kill("SIGTERM");
     for(let attempt=0;attempt<30&&child.exitCode===null;attempt++)await delay(100);

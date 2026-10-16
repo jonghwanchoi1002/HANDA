@@ -7,6 +7,7 @@ async function main() {
   const client = await getDatabase().connect();
   try {
     await client.query("BEGIN");
+    await client.query("SELECT pg_advisory_xact_lock(720241017)");
     const result = await client.query(`SELECT id,approval_status,"emailVerified" FROM handa_auth_user WHERE lower(email)=$1 FOR UPDATE`, [email]);
     if (result.rows.length !== 1 || !result.rows[0].emailVerified) throw new Error("A verified account is required.");
     const user = result.rows[0];

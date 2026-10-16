@@ -24,6 +24,7 @@ test("role and approval matrix denies visitors, pending/rejected/unverified user
 test("real auth handler: verify email, sign in, admin approval/revocation, reset password, CSRF and OAuth initiation", {timeout:60000}, async () => {
   const db = new PGlite();
   await db.exec(await readFile(new URL("../database/migrations/002_member_auth.sql",import.meta.url),"utf8"));
+  await db.exec(await readFile(new URL("../database/migrations/003_member_management.sql",import.meta.url),"utf8"));
   const server = new PGLiteSocketServer({db,port:55443,host:"127.0.0.1",maxConnections:10}); await server.start();
   const pool = new Pool({connectionString:"postgresql://postgres@127.0.0.1:55443/postgres",max:3});
   const mail: AuthMail[]=[];
