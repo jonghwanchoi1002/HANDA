@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "HANDA | 작은 시작, 새로운 가능성",
-  description: "HANDA 홈페이지에 오신 것을 환영합니다.",
+  title: "HANDA | 시작하고, 함께 성장합니다.",
+  description: "창업의 고민과 경험을 나누는 베를린 창업자 커뮤니티, HANDA.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
