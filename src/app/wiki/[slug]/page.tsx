@@ -1,19 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { wikiArticles } from "@/data/wiki";
 import { getPublishedWikiArticle } from "@/lib/wiki";
 import styles from "../wiki.module.css";
 
 type Props = { params: Promise<{ slug: string }> };
-export function generateStaticParams() {
-  return wikiArticles.map((article) => ({ slug: article.slug }));
-}
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
-  const article = await getPublishedWikiArticle(slug);
-  return { title: article ? `${article.title} | HANDA 위키` : "글을 찾을 수 없습니다 | HANDA" };
-}
+// 요청 시 DB 또는 세션을 확인하므로 서버 응답을 기다립니다.
+export const instant = false;
+
+export const metadata: Metadata = { title: "회원 전용 비즈니스 위키 | HANDA" };
 export default async function WikiArticlePage({ params }: Props) {
   const { slug } = await params;
   const article = await getPublishedWikiArticle(slug);

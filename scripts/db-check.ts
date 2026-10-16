@@ -4,7 +4,7 @@ import { readPublishedContent } from "../src/lib/content/repository";
 import { contentSchemas } from "../src/lib/content/schema";
 import type { ContentKind } from "../src/lib/content/schema";
 
-loadEnvConfig(process.cwd());
+loadEnvConfig(process.cwd(), process.env.NODE_ENV !== "production");
 async function main() {
   const database = getDatabase();
   await database.query("SELECT 1");

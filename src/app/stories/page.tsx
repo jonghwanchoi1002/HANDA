@@ -4,6 +4,9 @@ import Image from "next/image";
 import { getPublishedStories, formatEventDate } from "@/lib/stories";
 import styles from "./stories.module.css";
 
+// 요청 시 DB 또는 세션을 확인하므로 서버 응답을 기다립니다.
+export const instant = false;
+
 export const metadata: Metadata = { title: "모임 후기 | HANDA", description: "함께한 순간과 배움을 기록하는 HANDA의 모임 후기." };
 
 export default async function StoriesPage() {

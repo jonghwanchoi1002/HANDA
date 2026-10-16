@@ -3,7 +3,7 @@ import { getDatabase, closeDatabase } from "../src/lib/content/database";
 import { getInitialContent } from "../src/lib/content/initial";
 import { parseContent } from "../src/lib/content/schema";
 
-loadEnvConfig(process.cwd());
+loadEnvConfig(process.cwd(), process.env.NODE_ENV !== "production");
 async function main() {
   const entries = getInitialContent();
   const client = await getDatabase().connect();

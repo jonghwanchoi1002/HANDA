@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { readdir, readFile } from "node:fs/promises";
 import { getDatabase, closeDatabase } from "../src/lib/content/database";
 
-loadEnvConfig(process.cwd());
+loadEnvConfig(process.cwd(), process.env.NODE_ENV !== "production");
 async function main() {
   const client = await getDatabase().connect();
   try {

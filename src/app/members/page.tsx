@@ -4,6 +4,9 @@ import Image from "next/image";
 import { getPublishedMembers } from "@/lib/members";
 import styles from "./members.module.css";
 
+// 요청 시 DB 또는 세션을 확인하므로 서버 응답을 기다립니다.
+export const instant = false;
+
 export const metadata: Metadata = { title: "멤버 소개 | HANDA", description: "다른 경험, 같은 도전. HANDA의 멤버들을 만나보세요." };
 
 export default async function MembersPage() {

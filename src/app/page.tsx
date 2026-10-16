@@ -1,5 +1,5 @@
+import AccountNav from "@/components/account-nav";
 import Link from "next/link";
-import { getPublishedWikiArticles } from "@/lib/wiki";
 import { getHomeContent } from "@/lib/home";
 import styles from "./page.module.css";
 
@@ -9,8 +9,11 @@ const menus = [
 ];
 
 
+// 요청 시 DB 또는 세션을 확인하므로 서버 응답을 기다립니다.
+export const instant = false;
+
 export default async function Home() {
-  const [wikiArticles, home] = await Promise.all([getPublishedWikiArticles(), getHomeContent()]);
+  const home = await getHomeContent();
   return (
     <div className={styles.page}>
       <a href="#main" className={styles.skip}>본문으로 바로가기</a>
@@ -19,7 +22,7 @@ export default async function Home() {
           <Link className={styles.logo} href="/" aria-label="HANDA 홈">HANDA<span>.</span><small>BERLIN FOUNDERS COMMUNITY</small></Link>
           <nav aria-label="주 메뉴" className={styles.nav}>
             {menus.map(([id, label]) => <Link key={id} href={["wiki", "members", "stories", "testimonials"].includes(id) ? `/${id}` : `#${id}`}>{label}</Link>)}
-          </nav>
+          <AccountNav /></nav>
         </header>
         <main id="main">
           <section className={styles.hero} aria-labelledby="hero-title">
@@ -41,7 +44,7 @@ export default async function Home() {
           <section id="wiki" className={styles.section} aria-labelledby="wiki-title">
             <div className={styles.sectionHeading}><div><p className={styles.label}>03 — BUSINESS WIKI</p><h2 id="wiki-title">경험이 쌓이면, 길이 됩니다.</h2></div><Link className={styles.textLink} href="/wiki">위키 전체 보기 ↗</Link></div>
             <p className={styles.intro}>함께 채워갈 비즈니스 위키. 창업과 운영에 관한 이야기를 살펴보세요.</p>
-            <div className={styles.topics}>{wikiArticles.map((article) => <article key={article.slug}><div className={styles.topicTop}><span>{article.category}</span>{article.isExample && <span>예시 콘텐츠</span>}</div><h3><Link href={`/wiki/${article.slug}`}>{article.title}</Link></h3><p>{article.summary}</p><Link className={styles.textLink} href={`/wiki/${article.slug}`}>읽어보기 ↗</Link></article>)}</div>
+            <div className={styles.memberPlaceholder}><span className={styles.symbol} aria-hidden="true">↗</span><div><h3>승인된 회원을 위한 비즈니스 위키</h3><p>회원들이 나누는 창업과 운영 노하우는 로그인 후 관리자 승인을 받으면 열람할 수 있습니다.</p><Link className={styles.textLink} href="/wiki" prefetch={false}>회원 전용 위키로 이동 ↗</Link></div></div>
           </section>
           <section id="stories" className={`${styles.section} ${styles.dark}`} aria-labelledby="stories-title">
             <p className={styles.label}>04 — COMMUNITY JOURNAL</p><h2 id="stories-title">만나서 나눈 이야기,<br />오래 남을 기록.</h2><p className={styles.intro}>모임에서 오간 질문과 발견, 함께한 순간을 이곳에 기록합니다.</p><div className={styles.emptyStory}><span aria-hidden="true">↗</span><div><h3>우리의 이야기를 차곡차곡.</h3><p>예시 후기로 앞으로 담아갈 모임 기록을 살펴보세요.</p><Link className={styles.textLink} href="/stories">모임 후기 살펴보기 ↗</Link></div></div>

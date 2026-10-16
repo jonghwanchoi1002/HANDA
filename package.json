@@ -10,9 +10,14 @@
     "db:migrate": "tsx scripts/db-migrate.ts",
     "db:seed": "tsx scripts/db-seed.ts",
     "db:check": "tsx scripts/db-check.ts",
-    "test:db": "tsx --test tests/content.test.ts"
+    "test:db": "tsx --test tests/content.test.ts",
+    "admin:grant": "tsx scripts/admin-grant.ts",
+    "test:auth": "tsx --test tests/auth.test.ts",
+    "test:access": "npm run build && tsx --test tests/access.test.ts",
+    "auth:check": "tsx scripts/auth-check.ts"
   },
   "dependencies": {
+    "better-auth": "1.7.10",
     "next": "16.4.2",
     "pg": "^8.23.1",
     "react": "19.3.0",
