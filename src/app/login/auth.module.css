@@ -1,7 +1,4 @@
-.shell { min-height: 100vh; background: #fafbf8; color: #202b25; }
-.header { background: #202a25; color: white; padding: 26px max(5vw, calc((100vw - 1200px)/2)); display: flex; justify-content: space-between; align-items: center; gap: 20px; }
-.logo { font-size: 30px; font-weight: 900; letter-spacing: -1px; }
-.headerNav { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 16px; font-size: 13px; }
+.shell { --accent: #ff653e; min-height: 100vh; background: #fafbf8; color: #202b25; }
 .main { width: min(90%, 540px); margin: 60px auto; padding-bottom: 60px; }
 .wide { width: min(92%, 1050px); }
 .eyebrow { font-size: 11px; letter-spacing: 2px; color: #677c55; font-weight: bold; }
@@ -29,4 +26,4 @@
 .member h2 { font-size: 18px; margin: 0 0 8px; }
 .member p { font-size: 13px; line-height: 1.8; margin: 8px 0; overflow-wrap: anywhere; }
 .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
-@media (max-width: 600px) { .main { margin-top: 40px; } .main h1 { font-size: 30px; } .box { padding: 24px; } .header { padding: 24px; } }
+@media (max-width: 600px) { .main { margin-top: 40px; } .main h1 { font-size: 30px; } .box { padding: 24px; } }
