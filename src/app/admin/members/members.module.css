@@ -1,0 +1,14 @@
+.filters { display: flex; align-items: end; flex-wrap: wrap; gap: 16px; padding: 24px; border: 1px solid #dbe1d4; border-radius: 8px; background: white; margin: 32px 0 20px; }
+.filters label { display: grid; gap: 8px; font-size: 13px; flex: 1; min-width: 140px; }
+.filters label:first-child { flex: 2; min-width: 210px; }
+.filters input, .filters select { width: 100%; padding: 12px; border: 1px solid #aebca3; border-radius: 4px; background: white; color: #202b25; font: inherit; }
+.filters input:focus-visible, .filters select:focus-visible { outline: 3px solid #5c762c; outline-offset: 3px; }
+.filters a { font-size: 13px; text-decoration: underline; padding: 12px 0; }
+.memberHeading { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.memberHeading h2 { margin-bottom: 0; }
+.badge { border-radius: 20px; padding: 6px 12px; font-size: 11px; background: #eef1e7; color: #425d32; white-space: nowrap; }
+.controls { display: flex; gap: 12px 24px; flex-wrap: wrap; align-items: start; }
+.controls form { min-width: 0; }
+.pagination { display: flex; gap: 24px; align-items: center; margin: 30px 0; font-size: 14px; }
+.pagination a { color: #425d32; text-decoration: underline; }
+@media (max-width: 600px) { .filters { padding: 20px; } .filters label { flex-basis: 100%; min-width: 0; } .filters label:first-child { min-width: 0; } .memberHeading { align-items: start; } }

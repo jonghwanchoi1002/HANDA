@@ -22,7 +22,7 @@ export default function AuthForm({ emailEnabled, googleEnabled }: { emailEnabled
       if (mode === "login") {
         const result = await authClient.signIn.email({ email, password });
         if (result.error) throw new Error("이메일·비밀번호를 확인해 주세요. 이메일 인증이 필요한 경우 확인 메일을 확인하거나 아래에서 다시 요청하세요.");
-        router.replace("/account"); router.refresh();
+        router.replace("/"); router.refresh();
       } else if (mode === "signup") {
         const result = await authClient.signUp.email({ name: String(form.get("name") ?? "").trim(), email, password, callbackURL: "/login?verified=1" });
         if (result.error) throw new Error("가입 요청을 처리하지 못했습니다. 입력 내용을 확인하고 잠시 후 다시 시도해 주세요.");
@@ -42,7 +42,7 @@ export default function AuthForm({ emailEnabled, googleEnabled }: { emailEnabled
   async function googleSignIn() {
     setBusy(true); setMessage(""); setFailed(false);
     try {
-      const result = await authClient.signIn.social({ provider: "google", callbackURL: "/account", errorCallbackURL: "/login?error=oauth" });
+      const result = await authClient.signIn.social({ provider: "google", callbackURL: "/", errorCallbackURL: "/login?error=oauth" });
       if (result.error) throw new Error();
     } catch { setFailed(true); setMessage("Google 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요."); setBusy(false); }
   }
