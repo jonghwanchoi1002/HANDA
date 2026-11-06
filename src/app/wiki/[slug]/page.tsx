@@ -1,3 +1,7 @@
+import Image from "next/image";
+import { requireWikiMember } from "@/lib/auth/session";
+import { canManageMembers } from "@/lib/auth/permissions";
+import { getDatabase } from "@/lib/content/database";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -10,15 +14,19 @@ export const instant = false;
 
 export const metadata: Metadata = { title: "회원 전용 비즈니스 위키 | HANDA" };
 export default async function WikiArticlePage({ params }: Props) {
+  const user=await requireWikiMember();
   const { slug } = await params;
   const article = await getPublishedWikiArticle(slug);
   if (!article) notFound();
+  const owner=process.env.CONTENT_SOURCE === "database" ? (await getDatabase().query("SELECT author_id FROM handa_content WHERE kind='wiki' AND content_key=$1",[slug])).rows[0]?.author_id : null;
   return <main id="wiki-main" className={`${styles.main} ${styles.articleMain}`}>
     <Link href="/wiki" className={styles.back}>← 비즈니스 위키 목록</Link>
+    <div>{(canManageMembers(user)||owner===user.id)&&<Link className={styles.back} href={`/wiki/${slug}/edit`}>글 수정 ↗</Link>}</div>
     <article><header className={styles.articleHeader}><p className={styles.eyebrow}>{article.category}{article.isExample && " · 예시 콘텐츠"}</p><h1>{article.title}</h1><p>{article.summary}</p></header>
       {article.isExample && <aside className={styles.notice}>화면 개발을 위한 예시 글입니다. 개별 상황에 대한 전문적인 세무·법률 자문을 제공하지 않습니다.</aside>}
       <nav className={styles.contents} aria-label="글 목차"><h2>이 글의 내용</h2><ol>{article.sections.map((section, index) => <li key={section.title}><a href={`#section-${index + 1}`}>{section.title}</a></li>)}</ol></nav>
       <div className={styles.body}>{article.sections.map((section, index) => <section key={section.title} id={`section-${index + 1}`}><h2>{section.title}</h2>{section.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</section>)}</div>
+      {!!article.photos?.length && <div className={styles.photos}>{article.photos.map(photo=><figure key={photo.url}><Image src={photo.url} alt={photo.alt} width={photo.width} height={photo.height} unoptimized/><figcaption>{photo.alt}</figcaption></figure>)}</div>}
     </article>
     <div className={styles.articleEnd}><p>다른 경험도 함께 살펴보세요.</p><Link href="/wiki" className={styles.back}>전체 글로 돌아가기 →</Link></div>
   </main>;

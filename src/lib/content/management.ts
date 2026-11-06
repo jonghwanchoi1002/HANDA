@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { Pool } from "pg";
-import { canManageMembers } from "../auth/permissions";
+import { imageURLs } from "./media-access";
+import { canReadWiki, canManageMembers } from "../auth/permissions";
 import { parseContent, type ContentKind } from "./schema";
 
 export const kindSchema = z.enum(["home", "wiki", "member", "story", "testimonial"]);
@@ -13,7 +14,7 @@ export const saveSchema = z.object({
 export type ManagedContent = { kind: ContentKind; key: string; revision: number; status: "draft" | "published"; consent: boolean; order: number; payload: Record<string, unknown> };
 export class ContentManagementError extends Error {}
 
-export async function saveManagedContent(database: Pool, actorId: string, raw: unknown) {
+export async function saveManagedContent(database: Pool, actorId: string, raw: unknown, options: { wikiMember?: boolean } = {}) {
   const input = saveSchema.parse(raw);
   const payload = parseContent(input.kind, input.payload);
   const example = "isExample" in payload && payload.isExample;
@@ -27,14 +28,31 @@ export async function saveManagedContent(database: Pool, actorId: string, raw: u
     // 권한 변경과 동일한 잠금 순서로 처리해 저장 직전의 관리자 권한을 확인합니다.
     await client.query("SELECT pg_advisory_xact_lock(720241017)");
     const actor = await client.query(`SELECT role, approval_status AS "approvalStatus", "emailVerified" FROM handa_auth_user WHERE id=$1 FOR SHARE`, [actorId]);
-    if (!canManageMembers(actor.rows[0] ?? null)) throw new ContentManagementError("관리자 권한이 필요합니다.");
-    const existing = await client.query("SELECT payload,status,publication_consent,sort_order,revision FROM handa_content WHERE kind=$1 AND content_key=$2 FOR UPDATE", [input.kind,input.key]);
+    const user=actor.rows[0] ?? null;
+    const admin=canManageMembers(user);
+    if (!admin && !(options.wikiMember && input.kind==="wiki" && canReadWiki(user))) throw new ContentManagementError("글을 작성할 권한이 없습니다.");
+    const existing = await client.query("SELECT payload,status,publication_consent,sort_order,revision,author_id FROM handa_content WHERE kind=$1 AND content_key=$2 FOR UPDATE", [input.kind,input.key]);
     const previous = existing.rows[0];
+    if (!admin && previous?.author_id !== actorId && previous) throw new ContentManagementError("본인이 작성한 위키 글만 수정할 수 있습니다.");
+    if (!admin && (example || input.order !== (previous?.sort_order ?? 0))) throw new ContentManagementError("위키 글의 공개 설정을 확인해 주세요.");
+    if (!admin && !previous) {
+      const reserved=(await client.query("SELECT uploader_id FROM handa_media WHERE kind=$1 AND content_key=$2 LIMIT 1",[input.kind,input.key])).rows[0];
+      if(reserved && reserved.uploader_id!==actorId)throw new ContentManagementError("작성 중인 글 주소를 확인해 주세요.");
+    }
+    const urls=imageURLs(payload);
+    if(urls.length>10)throw new ContentManagementError("사진은 글 하나에 10장까지 첨부할 수 있습니다.");
+    const oldURLs=imageURLs(previous?.payload);
+    for(const url of urls) {
+      if(url.startsWith("/api/images/")) {
+        const media=await client.query("SELECT id FROM handa_media WHERE id::text=$1 AND kind=$2 AND content_key=$3",[url.slice(12),input.kind,input.key]);
+        if(!media.rows.length)throw new ContentManagementError("이 글에 첨부한 사진만 사용할 수 있습니다.");
+      } else if(!admin && !oldURLs.includes(url)) throw new ContentManagementError("사진 첨부 버튼으로 사진을 추가해 주세요.");
+    }
     if ((previous?.revision ?? 0) !== input.revision) throw new ContentManagementError("다른 관리자가 수정한 내용이 있습니다. 현재 작성 내용을 복사한 뒤 페이지를 새로고침해 주세요.");
     if (previous) {
       await client.query("UPDATE handa_content SET payload=$3,status=$4,is_example=$5,publication_consent=$6,sort_order=$7,revision=revision+1 WHERE kind=$1 AND content_key=$2", [input.kind,input.key,payload,input.status,example,input.consent,input.order]);
     } else {
-      await client.query("INSERT INTO handa_content(kind,content_key,payload,status,is_example,publication_consent,sort_order) VALUES($1,$2,$3,$4,$5,$6,$7)", [input.kind,input.key,payload,input.status,example,input.consent,input.order]);
+      await client.query("INSERT INTO handa_content(kind,content_key,payload,status,is_example,publication_consent,sort_order,author_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8)", [input.kind,input.key,payload,input.status,example,input.consent,input.order,actorId]);
     }
     await client.query("INSERT INTO handa_content_audit(actor_id,kind,content_key,previous_value,new_value) VALUES($1,$2,$3,$4,$5)", [actorId,input.kind,input.key,previous ?? null,{payload,status:input.status,publication_consent:input.consent,sort_order:input.order,revision:input.revision+1}]);
     await client.query("COMMIT");

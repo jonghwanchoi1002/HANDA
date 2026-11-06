@@ -10,7 +10,7 @@ import { getInitialContent } from "../src/lib/content/initial";
 
 async function setup() {
   const db=new PGlite();
-  for(const name of ["001_content.sql","002_member_auth.sql","003_member_management.sql","004_content_management.sql"]) await db.exec(await readFile(new URL(`../database/migrations/${name}`,import.meta.url),"utf8"));
+  for(const name of ["001_content.sql","002_member_auth.sql","003_member_management.sql","004_content_management.sql","005_member_wiki_media.sql"]) await db.exec(await readFile(new URL(`../database/migrations/${name}`,import.meta.url),"utf8"));
   const server=new PGLiteSocketServer({db,port:55447,host:"127.0.0.1",maxConnections:10});await server.start();
   const pool=new Pool({connectionString:"postgresql://postgres@127.0.0.1:55447/postgres",max:3});
   for(const [id,role,status,verified] of [["admin","admin","approved",true],["member","member","approved",true],["pending","admin","pending",true],["unverified","admin","approved",false]]) await pool.query(`INSERT INTO handa_auth_user(id,name,email,role,approval_status,"emailVerified") VALUES($1,$1,$2,$3,$4,$5)`,[id,`${id}@example.test`,role,status,verified]);
@@ -21,13 +21,13 @@ const wiki={kind:"wiki",key:"new-wiki",revision:0,status:"draft",consent:false,o
 
 test("only current approved verified admins can write; drafts stay private and publishing/unpublishing takes effect",async()=>{
   const c=await setup();try{
-    for(const actor of ["member","pending","unverified","missing"])await assert.rejects(saveManagedContent(c.pool,actor,wiki),/관리자 권한/);
+    for(const actor of ["member","pending","unverified","missing"])await assert.rejects(saveManagedContent(c.pool,actor,wiki),/권한/);
     await saveManagedContent(c.pool,"admin",wiki);
     assert.equal((await readPublishedContent(c.query,"wiki")).length,0);
     await saveManagedContent(c.pool,"admin",{...wiki,revision:1,status:"published"});
     assert.equal((await readPublishedContent(c.query,"wiki"))[0].title,"새 위키");
     await c.pool.query("UPDATE handa_auth_user SET role='member' WHERE id='admin'");
-    await assert.rejects(saveManagedContent(c.pool,"admin",{...wiki,revision:2}),/관리자 권한/);
+    await assert.rejects(saveManagedContent(c.pool,"admin",{...wiki,revision:2}),/권한/);
     await c.pool.query("UPDATE handa_auth_user SET role='admin' WHERE id='admin'");
     await saveManagedContent(c.pool,"admin",{...wiki,revision:2});
     assert.equal((await readPublishedContent(c.query,"wiki")).length,0);

@@ -12,7 +12,7 @@ const block = z.discriminatedUnion("type", [
   z.object({ id: text, type: z.literal("image"), image: storyImage }),
 ]);
 export const contentSchemas = {
-  wiki: z.object({ slug, title: text, category: text, summary: text, isExample: z.boolean(), sections: z.array(z.object({ title: text, paragraphs: z.array(text).min(1) })).min(1) }),
+  wiki: z.object({ photos: z.array(photo).max(10).optional(), slug, title: text, category: text, summary: text, isExample: z.boolean(), sections: z.array(z.object({ title: text, paragraphs: z.array(text).min(1) })).min(1) }),
   member: z.object({ slug, name: text, field: text, role: text, summary: text, introduction: z.array(text).min(1), interests: z.array(text), website: webUrl.nullable(), photoUrl: imageUrl.nullable(), isExample: z.boolean() }),
   story: z.object({ slug, title: text, summary: text, eventDate: z.iso.date(), location: text, cover: storyImage.nullable(), blocks: z.array(block).min(1).refine((blocks) => new Set(blocks.map((item) => item.id)).size === blocks.length, "Block IDs must be unique"), isExample: z.boolean() }),
   testimonial: z.object({ id: slug, name: text, introduction: text, quote: text, topic: text, photo: photo.nullable(), isExample: z.boolean() }),
