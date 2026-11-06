@@ -1,4 +1,5 @@
 "use client";
+import PublicationRequestDialog from "@/components/publication-request-dialog";
 import LeaveDialog from "@/components/leave-dialog";
 import type { ContentStatus } from "@/lib/content/status";
 import PhotoPicker, { type Photo } from "@/components/photo-picker";
@@ -16,7 +17,13 @@ import styles from "./content.module.css";
 type Section = {title:string;body:string};
 type Block = ContentMap["story"]["blocks"][number];
 const lines=(value:FormDataEntryValue|null)=>String(value ?? "").split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
-export default function ContentEditor({entry: initialEntry,mode="admin",uploadsEnabled=false,canPublish=mode==="admin"}:{entry:ManagedContent;mode?:"admin"|"wiki";uploadsEnabled?:boolean;canPublish?:boolean}) {
+type EditorProps={entry:ManagedContent;mode?:"admin"|"wiki";uploadsEnabled?:boolean;canPublish?:boolean};
+export default function ContentEditor(props:EditorProps){
+  const router=useRouter();
+  const [reviewTarget,setReviewTarget]=useState<string|null>(null);
+  return <><ContentEditorForm key={props.entry.key} {...props} onReviewRequested={setReviewTarget}/><PublicationRequestDialog open={reviewTarget!==null} onConfirm={()=>{const target=reviewTarget!;setReviewTarget(null);router.replace(target);}}/></>;
+}
+function ContentEditorForm({entry: initialEntry,mode="admin",uploadsEnabled=false,canPublish=mode==="admin",onReviewRequested}:EditorProps&{onReviewRequested:(path:string)=>void}) {
   const [entry]=useState(initialEntry);
   const router=useRouter();
   const listPath=mode==="wiki"?"/account/posts":`/admin/content?kind=${entry.kind}`;
@@ -68,7 +75,10 @@ export default function ContentEditor({entry: initialEntry,mode="admin",uploadsE
     if(result.saved) {
       savedSnapshot.current={values,status,order,example,consent,sections,blocks,photos};
       setDirty(false);
-      if(entry.revision===0 && result.path) router.replace(result.path);
+      if(result.path) {
+        if(result.reviewRequested) onReviewRequested(result.path);
+        else router.replace(result.path);
+      }
     }
     // 실패 후에도 직전에 저장한 버전 번호를 유지합니다.
     return {...result,revision:result.revision ?? previous.revision};

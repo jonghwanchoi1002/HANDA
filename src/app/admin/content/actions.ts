@@ -5,7 +5,7 @@ import { requireAdmin } from "@/lib/auth/session";
 import { getDatabase } from "@/lib/content/database";
 import { saveManagedContent, ContentManagementError } from "@/lib/content/management";
 
-export type SaveState = { message: string; saved?: boolean; revision?: number; path?: string };
+export type SaveState = { message: string; saved?: boolean; revision?: number; path?: string; reviewRequested?: boolean };
 export async function saveContent(_previous: SaveState, form: FormData): Promise<SaveState> {
   const admin = await requireAdmin();
   if (process.env.CONTENT_SOURCE !== "database") return {message:"현재 콘텐츠를 저장할 수 없습니다. 사이트 설정을 확인해 주세요."};
@@ -21,5 +21,5 @@ export async function saveContent(_previous: SaveState, form: FormData): Promise
     return {message:"저장하지 못했습니다. 작성 내용은 유지됩니다. 잠시 후 다시 시도해 주세요."};
   }
   revalidatePath("/", "layout");
-  return {message:"저장했습니다.",saved:true,revision:result.revision,path:`/admin/content/${result.kind}/${result.key}`};
+  return {message:"저장했습니다.",saved:true,revision:result.revision,path:`/admin/content?kind=${result.kind}`};
 }

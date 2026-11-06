@@ -1,48 +1,73 @@
+import Image from "next/image";
 import Link from "next/link";
 import { getHomeContent } from "@/lib/home";
+import { getPublishedMembers } from "@/lib/members";
+import { getPublishedTestimonials } from "@/lib/testimonials";
+import { homeMainPhoto } from "@/data/home-artwork";
 import styles from "./page.module.css";
 
-// 요청 시 DB 또는 세션을 확인하므로 서버 응답을 기다립니다.
 export const instant = false;
 
 export default async function Home() {
-  const home = await getHomeContent();
-  return (
-    <div className={styles.page}>
-      <a href="#main" className={styles.skip}>본문으로 바로가기</a>
-      <div className={styles.cover}>
-
-        <main id="main">
-          <section className={styles.hero} aria-labelledby="hero-title">
-            <p className={styles.eyebrow}>EVERY BEGINNING NEEDS A COMMUNITY</p>
-            <h1 id="hero-title">{home.heroTitle}<br />{home.heroSubtitle} <span>{home.heroHighlight}</span></h1>
-            <p className={styles.heroDescription}>{home.heroDescription.map((line, index) => <span key={index}>{index > 0 && <br />}{line}</span>)}</p>
-            <a className={styles.button} href="#about">우리의 이야기 <span aria-hidden="true">↗</span></a>
-            <div className={styles.heroBottom}><span>서로의 경험이, 다음 시작의 힘이 되도록.</span><a href="#about" aria-label="HANDA 소개로 이동">SCROLL TO EXPLORE ↓</a></div>
-          </section>
-          <section id="about" className={styles.section} aria-labelledby="about-title">
-            <p className={styles.label}>01 — ABOUT US</p>
-            <div className={styles.aboutGrid}><h2 id="about-title">{home.aboutTitle.map((line, index) => <span key={index}>{index > 0 && <br />}{line}</span>)}</h2><div><p className={styles.lead}>{home.aboutLead.map((line, index) => <span key={index}>{index > 0 && <br />}{line}</span>)}</p><p>{home.aboutDescription}</p><Link className={styles.textLink} href="/wiki">함께 나눌 노하우 살펴보기 ↗</Link></div></div>
-            <div className={styles.values}>{[["CONNECT", "사람과 연결되고"], ["SHARE", "경험을 나누고"], ["GROW", "함께 성장합니다"]].map(([en, ko]) => <div key={en}><span>{en}</span><h3>{ko}</h3></div>)}</div>
-          </section>
-          <section id="members" className={`${styles.section} ${styles.soft}`} aria-labelledby="members-title">
-            <p className={styles.label}>02 — OUR PEOPLE</p><h2 id="members-title">다른 경험, 같은 도전.</h2><p className={styles.intro}>서로의 가능성을 넓혀줄 HANDA의 멤버들을 소개할 공간입니다.</p>
-            <div className={styles.memberPlaceholder}><span className={styles.symbol} aria-hidden="true">✳</span><div><h3>곧, 우리의 이야기를 만나보세요.</h3><p>멤버의 사진과 사업 분야, 소개를 준비하고 있습니다.</p></div><Link className={styles.textLink} href="/members">멤버 만나보기 ↗</Link></div>
-          </section>
-          <section id="wiki" className={styles.section} aria-labelledby="wiki-title">
-            <div className={styles.sectionHeading}><div><p className={styles.label}>03 — BUSINESS WIKI</p><h2 id="wiki-title">경험이 쌓이면, 길이 됩니다.</h2></div><Link className={styles.textLink} href="/wiki">위키 전체 보기 ↗</Link></div>
-            <p className={styles.intro}>함께 채워갈 비즈니스 위키. 창업과 운영에 관한 이야기를 살펴보세요.</p>
-            <div className={styles.memberPlaceholder}><span className={styles.symbol} aria-hidden="true">↗</span><div><h3>승인된 회원을 위한 비즈니스 위키</h3><p>회원들이 나누는 창업과 운영 노하우는 로그인 후 관리자 승인을 받으면 열람할 수 있습니다.</p><Link className={styles.textLink} href="/wiki" prefetch={false}>회원 전용 위키로 이동 ↗</Link></div></div>
-          </section>
-          <section id="stories" className={`${styles.section} ${styles.dark}`} aria-labelledby="stories-title">
-            <p className={styles.label}>04 — COMMUNITY JOURNAL</p><h2 id="stories-title">만나서 나눈 이야기,<br />오래 남을 기록.</h2><p className={styles.intro}>모임에서 오간 질문과 발견, 함께한 순간을 이곳에 기록합니다.</p><div className={styles.emptyStory}><span aria-hidden="true">↗</span><div><h3>우리의 이야기를 차곡차곡.</h3><p>예시 후기로 앞으로 담아갈 모임 기록을 살펴보세요.</p><Link className={styles.textLink} href="/stories">모임 후기 살펴보기 ↗</Link></div></div>
-          </section>
-          <section id="testimonials" className={styles.section} aria-labelledby="testimonials-title">
-            <p className={styles.label}>05 — VOICES OF HANDA</p><h2 id="testimonials-title">함께한 사람들의 목소리.</h2><div className={styles.voices}><span aria-hidden="true">“</span><div><p>HANDA에서 만난 인연과 배움.<br />참가자들의 진솔한 이야기를 담을 예정입니다.</p><small>실제 참가자 후기를 준비하고 있습니다.</small><br /><Link className={styles.textLink} href="/testimonials">참가자 이야기 살펴보기 ↗</Link></div></div>
-          </section>
-        </main>
+  const [home, members, testimonials] = await Promise.all([
+    getHomeContent(), getPublishedMembers(), getPublishedTestimonials(),
+  ]);
+  const voice = testimonials.find(item => !item.isExample);
+  return <div className={styles.page}>
+    <a href="#main" className={styles.skip}>본문으로 바로가기</a>
+    <main id="main">
+      <section className={styles.hero} aria-labelledby="hero-title">
+        {homeMainPhoto && <Image className={styles.heroPhoto} src={homeMainPhoto} alt="베를린 카페에서 함께 이야기를 나누는 HANDA 멤버들" fill sizes="100vw" priority/>}
+        <div className={styles.heroShade} aria-hidden="true"/>
+        <div className={`${styles.wrap} ${styles.heroContent}`}>
+          <p className={styles.heroEyebrow}>Berlin Founders Community</p>
+          <h1 id="hero-title">{home.heroTitle}<br/>{home.heroSubtitle} {home.heroHighlight}</h1>
+          <p className={styles.heroDescription}>{home.heroDescription.join(" ")}</p>
+          <div className={styles.heroActions}><a className={styles.button} href="#about">HANDA 알아보기</a><Link className={`${styles.button} ${styles.ghost}`} href="/wiki">비즈니스 위키</Link></div>
+        </div>
+      </section>
+      <section id="about" className={`${styles.section} ${styles.about}`} aria-labelledby="about-title">
+        <div className={styles.wrap}>
+          <p className={styles.label}>01 — About</p>
+          <h2 id="about-title">{home.aboutTitle.join(" ")}</h2>
+          {home.aboutLead.length>0&&<p className={styles.aboutLead}>{home.aboutLead.join(" ")}</p>}
+          {home.aboutDescription&&<p className={styles.aboutDescription}>{home.aboutDescription}</p>}
+          <div className={styles.values}>{[
+            ["01", home.aboutValue1Title, home.aboutValue1Description],
+            ["02", home.aboutValue2Title, home.aboutValue2Description],
+            ["03", home.aboutValue3Title, home.aboutValue3Description],
+          ].map(([number, title, description]) => <div key={number}><span>{number}</span><h3>{title}</h3><p>{description}</p></div>)}</div>
+        </div>
+      </section>
+      <section id="members" className={styles.section} aria-labelledby="members-title">
+        <div className={styles.wrap}>
+          <p className={styles.label}>02 — Our People</p><h2 id="members-title">다른 경험, 같은 도전.</h2>
+          {members.length ? <div className={styles.people}>{members.slice(0,3).map(member => <Link className={styles.person} href={`/members/${member.slug}`} key={member.slug}>
+            <div className={styles.portrait}>{member.photoUrl ? <Image src={member.photoUrl} alt={`${member.name} 프로필 사진`} fill sizes="(max-width: 700px) 90vw, 340px" unoptimized/> : <span>프로필 사진 준비 중</span>}</div>
+            <h3>{member.name}</h3><p>{member.field}{member.isExample && <span className={styles.example}> · 예시 멤버</span>}</p>
+          </Link>)}</div> : <p className={styles.empty}>멤버 소개를 준비하고 있습니다.</p>}
+          <Link className={styles.peopleLink} href="/members">멤버 소개 전체 보기 →</Link>
+        </div>
+      </section>
+      <div className={`${styles.wrap} ${styles.featureGrid}`}>
+        <Link id="wiki" href="/wiki" className={`${styles.featureCard} ${styles.wikiCard}`} aria-labelledby="wiki-title">
+          <p className={styles.label}>03 — Business Wiki</p><h2 id="wiki-title">경험이 쌓이면, 길이 됩니다.</h2>
+          <p className={styles.cardDescription}>승인된 회원을 위한 창업·운영 노하우 위키.</p><span className={styles.cardLink}>위키 전체 보기 →</span>
+        </Link>
+        <Link id="stories" href="/stories" className={`${styles.featureCard} ${styles.journalCard}`} aria-labelledby="stories-title">
+          {homeMainPhoto && <Image className={styles.journalPhoto} src={homeMainPhoto} alt="" fill sizes="(max-width: 700px) 100vw, 540px"/>}
+          <div className={styles.journalShade} aria-hidden="true"/>
+          <div className={styles.journalContent}><p className={styles.label}>04 — Community Journal</p><h2 id="stories-title">만나서 나눈 이야기, 오래 남을 기록.</h2><span className={styles.cardLink}>정기모임 후기 보기 →</span></div>
+        </Link>
       </div>
-      <footer className={styles.footer}><div><Link href="/" className={styles.footerLogo}>HANDA.</Link><p>시작하고, 함께 성장합니다.</p></div><span>© 2026 HANDA · Berlin</span><a href="#main">맨 위로 ↑</a></footer>
-    </div>
-  );
+      <section id="testimonials" className={`${styles.section} ${styles.testimonials}`} aria-labelledby="testimonials-title">
+        <div className={styles.wrap}><p className={styles.label}>05 — Voices of HANDA</p>
+          <h2 id="testimonials-title">{voice ? `“${voice.quote}”` : "함께한 사람들의 목소리."}</h2>
+          {voice ? <p className={styles.voiceAuthor}>{voice.name} · {voice.introduction}</p> : <p className={styles.voiceAuthor}>참가자들의 진솔한 이야기를 준비하고 있습니다.</p>}
+          <Link className={styles.voiceLink} href="/testimonials">Testimonial 전체 보기 →</Link>
+        </div>
+      </section>
+    </main>
+    <footer className={styles.footer}><div className={`${styles.wrap} ${styles.footerInner}`}><Link href="/" aria-label="HANDA 홈"><Image src="/brand/handa-logo-cream.svg" alt="HANDA · Berlin Founders Community" width={160} height={42}/></Link><span>시작하고, 함께 성장합니다. © 2026 HANDA · Berlin</span></div></footer>
+  </div>;
 }

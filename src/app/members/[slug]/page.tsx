@@ -25,7 +25,7 @@ export default async function MemberPage({ params }: Props) {
     <Link href="/members" className={styles.back}>← 멤버 목록</Link>
     {member.isExample && <aside className={styles.notice}>실제 인물이 아닌 화면 개발용 예시 프로필입니다.</aside>}
     <article className={styles.profile}>
-      <div><div className={styles.profilePortrait}>{member.photoUrl ? <Image src={member.photoUrl} alt={`${member.name} 프로필 사진`} width={600} height={600} unoptimized /> : <><span aria-hidden="true">✳</span><small>프로필 사진 준비 중</small></>}</div></div>
+      <div><div className={styles.profilePortrait}>{member.photoUrl ? <Image src={member.photoUrl} alt={`${member.name} 프로필 사진`} width={600} height={600} unoptimized /> : <><span aria-hidden="true">↗</span><small>프로필 사진 준비 중</small></>}</div></div>
       <div><p className={styles.eyebrow}>{member.field}</p><h1>{member.name}</h1><p className={styles.profileRole}>{member.role}</p><p className={styles.lead}>{member.summary}</p>
         <section className={styles.bio}><h2>소개</h2>{member.introduction.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</section>
         <section className={styles.bio}><h2>함께 이야기하고 싶은 주제</h2><ul className={styles.tags}>{member.interests.map((interest) => <li key={interest}>{interest}</li>)}</ul></section>

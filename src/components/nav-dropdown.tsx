@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import styles from "./nav-dropdown.module.css";
 
-export default function NavDropdown({label,children}:{label:string;children:React.ReactNode}) {
+export default function NavDropdown({label,children,active=false}:{label:string;children:React.ReactNode;active?:boolean}) {
   const [open,setOpen]=useState(false);
   const [position,setPosition]=useState({top:0,left:0});
   const trigger=useRef<HTMLButtonElement>(null);const panel=useRef<HTMLDivElement>(null);
@@ -31,7 +31,7 @@ export default function NavDropdown({label,children}:{label:string;children:Reac
     document.addEventListener("pointerdown",outside);document.addEventListener("keydown",escape);document.addEventListener("focusin",focusOutside);window.addEventListener("resize",close);window.addEventListener("scroll",reposition,true);
     return ()=>{document.removeEventListener("pointerdown",outside);document.removeEventListener("keydown",escape);document.removeEventListener("focusin",focusOutside);window.removeEventListener("resize",close);window.removeEventListener("scroll",reposition,true);};
   },[visible]);
-  return <><button ref={trigger} type="button" className={styles.trigger} aria-label={label} aria-expanded={visible} aria-controls={visible?id:undefined} onClick={show} onKeyDown={event=>{
+  return <><button ref={trigger} type="button" className={`${styles.trigger} ${active?styles.active:""}`} aria-label={label} aria-expanded={visible} aria-controls={visible?id:undefined} onClick={show} onKeyDown={event=>{
     if(event.key==="ArrowDown"){event.preventDefault();if(!visible)show();requestAnimationFrame(()=>panel.current?.querySelector<HTMLElement>("a,button")?.focus());}
     if(event.key==="Tab"&&!event.shiftKey&&visible){event.preventDefault();panel.current?.querySelector<HTMLElement>("a,button")?.focus();}
   }}>{label}<span aria-hidden="true">▾</span></button>
