@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { homeAboutDefaults } from "./home-defaults";
 
 const text = z.string().trim().min(1);
 const webUrl = z.url().refine((url) => ["http:", "https:"].includes(new URL(url).protocol), "HTTP(S) URL required");
@@ -18,7 +19,13 @@ export const contentSchemas = {
   testimonial: z.object({ id: slug, name: text, introduction: text, quote: text, topic: text, photo: photo.nullable(), isExample: z.boolean() }),
   home: z.object({
     heroTitle: text, heroSubtitle: text, heroHighlight: text, heroDescription: z.array(text).min(1),
-    aboutTitle: z.array(text).min(1), aboutLead: z.array(text).min(1), aboutDescription: text,
+    aboutTitle: z.array(text).min(1), aboutLead: z.array(text), aboutDescription: z.string().trim(),
+    aboutValue1Title: text.default(homeAboutDefaults.aboutValue1Title),
+    aboutValue1Description: text.default(homeAboutDefaults.aboutValue1Description),
+    aboutValue2Title: text.default(homeAboutDefaults.aboutValue2Title),
+    aboutValue2Description: text.default(homeAboutDefaults.aboutValue2Description),
+    aboutValue3Title: text.default(homeAboutDefaults.aboutValue3Title),
+    aboutValue3Description: text.default(homeAboutDefaults.aboutValue3Description),
   }),
 };
 export type ContentKind = keyof typeof contentSchemas;

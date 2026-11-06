@@ -1,4 +1,5 @@
 import { getBlobToken } from "@/lib/content/blob-config";
+import { parseContent } from "@/lib/content/schema";
 import { notFound } from "next/navigation";
 import AccountShell from "@/components/account-shell";
 import { requireAdmin } from "@/lib/auth/session";
@@ -13,5 +14,6 @@ export default async function EditContent({params}:{params:Promise<{kind:string;
   const input=await params;const kind=kindSchema.safeParse(input.kind).data;if(!kind)notFound();
   const result=await getDatabase().query("SELECT kind,content_key AS key,payload,status,publication_consent AS consent,sort_order AS \"order\",revision FROM handa_content WHERE kind=$1 AND content_key=$2",[kind,input.key]);
   const entry=result.rows[0] as ManagedContent|undefined;if(!entry)notFound();
+  if(kind==="home")entry.payload=parseContent("home",entry.payload);
   return <AccountShell wide><p className={styles.eyebrow}>HANDA ADMIN</p><h1>{labels[kind]} 수정</h1><ContentEditor uploadsEnabled={Boolean(getBlobToken())} key={`${kind}/${entry.key}`} entry={entry}/></AccountShell>;
 }

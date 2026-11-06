@@ -16,3 +16,5 @@
   .logo img { width: 180px; height: 47px; }
   .nav { font-size: 12px; gap: 20px; }
 }
+
+.overHero { background: linear-gradient(180deg,color-mix(in srgb, var(--ink) 62%, transparent),color-mix(in srgb, var(--ink) 28%, transparent)); }

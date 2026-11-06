@@ -65,3 +65,29 @@ test("all content types round-trip including images; testimonials require consen
     assert.equal(history.previous_value,null);assert.equal(history.new_value.revision,1);
   }finally{await c.close();}
 });
+
+test("homepage design migrates only legacy copy and admins can edit every About item",async()=>{
+  const c=await setup();try{
+    const entry=getInitialContent().find(item=>item.kind==="home")!;
+    const legacy={...(entry.payload as Record<string,unknown>),heroTitle:"시작하고,",heroSubtitle:"함께",heroHighlight:"성장합니다.",aboutTitle:["관리자가 작성한 소개"],aboutValue2Title:"관리자 맞춤 항목"};
+    delete (legacy as Record<string,unknown>).aboutValue1Title;
+    await c.pool.query("INSERT INTO handa_content(kind,content_key,payload,status) VALUES('home','homepage',$1,'published')",[legacy]);
+    const migration=await readFile(new URL("../database/migrations/009_home_design_copy.sql",import.meta.url),"utf8");
+    await c.pool.query(migration);
+    const initial=(await readPublishedContent(c.query,"home"))[0];
+    assert.equal(initial.heroTitle,"혼자 고민하던 일을,");
+    assert.equal(initial.heroSubtitle,"함께 풀어가는");
+    assert.deepEqual(initial.aboutTitle,["관리자가 작성한 소개"]);
+    assert.equal(initial.aboutValue1Title,"사람과 연결되고");
+    assert.equal(initial.aboutValue2Title,"관리자 맞춤 항목");
+    const revision=(await c.pool.query("SELECT revision FROM handa_content WHERE kind='home'")).rows[0].revision;
+    await c.pool.query(migration);
+    assert.equal((await c.pool.query("SELECT revision FROM handa_content WHERE kind='home'")).rows[0].revision,revision);
+    assert.equal((await c.pool.query("SELECT count(*)::int AS count FROM handa_content_audit WHERE kind='home'")).rows[0].count,1);
+    const payload={...initial,aboutTitle:["바뀐 소개 제목"],aboutValue1Title:"바뀐 01 제목",aboutValue1Description:"바뀐 01 설명",aboutValue2Title:"바뀐 02 제목",aboutValue2Description:"바뀐 02 설명",aboutValue3Title:"바뀐 03 제목",aboutValue3Description:"바뀐 03 설명"};
+    await assert.rejects(saveManagedContent(c.pool,"member",{...entry,payload,revision,status:"published"}),/권한/);
+    await saveManagedContent(c.pool,"admin",{...entry,payload,revision,status:"published"});
+    assert.deepEqual((await readPublishedContent(c.query,"home"))[0],payload);
+    await assert.rejects(saveManagedContent(c.pool,"admin",{...entry,payload:{...payload,aboutValue1Title:""},revision:revision+1,status:"published"}));
+  }finally{await c.close();}
+});
