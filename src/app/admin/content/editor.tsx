@@ -68,7 +68,7 @@ export default function ContentEditor({entry: initialEntry,mode="admin",uploadsE
     if(result.saved) {
       savedSnapshot.current={values,status,order,example,consent,sections,blocks,photos};
       setDirty(false);
-      if(entry.revision===0 && result.path) router.replace(result.path);
+      if(result.path) router.replace(result.path);
     }
     // 실패 후에도 직전에 저장한 버전 번호를 유지합니다.
     return {...result,revision:result.revision ?? previous.revision};

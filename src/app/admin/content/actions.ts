@@ -21,5 +21,5 @@ export async function saveContent(_previous: SaveState, form: FormData): Promise
     return {message:"저장하지 못했습니다. 작성 내용은 유지됩니다. 잠시 후 다시 시도해 주세요."};
   }
   revalidatePath("/", "layout");
-  return {message:"저장했습니다.",saved:true,revision:result.revision,path:`/admin/content/${result.kind}/${result.key}`};
+  return {message:"저장했습니다.",saved:true,revision:result.revision,path:`/admin/content?kind=${result.kind}`};
 }
