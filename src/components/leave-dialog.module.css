@@ -1,5 +1,5 @@
-.dialog { width:min(440px,calc(100% - 40px)); padding:28px; border:1px solid #dbe1d4; border-radius:10px; background:white; color:#202b25; box-shadow:0 16px 64px #0003; }
-.dialog::backdrop { background:#14231cc0; }
+.dialog { width:min(440px,calc(100% - 40px)); padding:28px; border:1px solid var(--border); border-radius:10px; background:var(--cream); color:var(--ink); box-shadow:0 16px 64px var(--shadow-soft); }
+.dialog::backdrop { background:var(--backdrop); }
 .dialog h2 { font-size:21px; margin:0 0 16px; }
 .dialog p { font-size:15px; line-height:1.8; }
 .controls { display:flex; justify-content:flex-end; gap:12px; margin-top:24px; }

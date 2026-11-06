@@ -1,9 +1,9 @@
 .trigger { display:flex; align-items:center; gap:8px; padding:8px 0; border:0; border-bottom:1px solid transparent; font:inherit; color:inherit; background:transparent; cursor:pointer; white-space:nowrap; }
-.trigger:hover, .trigger[aria-expanded="true"] { color:#ffaf98; border-bottom-color:currentColor; }
-.trigger:focus-visible { outline:3px solid #b9cca4; outline-offset:5px; }
+.trigger:hover, .trigger[aria-expanded="true"] { color:var(--brass); border-bottom-color:currentColor; }
+.trigger:focus-visible { outline:3px solid var(--brass); outline-offset:5px; }
 .trigger span { font-size:10px; }
-.panel { position:fixed; z-index:200; width:224px; max-height:calc(100dvh - var(--header-height) - 24px); overflow:auto; padding:8px; background:#fff; color:#202b25; border:1px solid #dbe1d4; border-radius:8px; box-shadow:0 10px 32px #202a252b; }
+.panel { position:fixed; z-index:200; width:224px; max-height:calc(100dvh - var(--header-height) - 24px); overflow:auto; padding:8px; background:var(--cream); color:var(--ink); border:1px solid var(--border); border-radius:8px; box-shadow:0 10px 32px var(--shadow-soft); }
 .panel nav { display:grid; gap:4px; }
 .panel a,.panel button { display:block; width:100%; text-align:left; padding:12px 14px; font:inherit; font-size:14px; font-weight:500; border:0; border-radius:4px; color:inherit; background:transparent; cursor:pointer; }
-.panel a:hover,.panel button:hover { background:#eef1e7; }
+.panel a:hover,.panel button:hover { background:var(--sage); }
 .panel p { margin:8px; font-size:13px; }
