@@ -1,4 +1,3 @@
-import SiteHeader from "@/components/site-header";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
@@ -17,7 +16,7 @@ export default async function TestimonialsPage() {
   const testimonials = await getPublishedTestimonials();
   return <div className={styles.shell}>
     <a className={styles.skip} href="#testimonials-main">본문으로 바로가기</a>
-    <SiteHeader active="/testimonials" />
+
     <main id="testimonials-main" className={styles.main}>
       <section className={styles.hero}><p className={styles.eyebrow}>VOICES OF HANDA</p><h1>함께한 사람들의<br /><span>목소리를 담습니다.</span></h1><p>연결되는 순간, 서로에게 배우는 시간.<br />HANDA와 함께하는 사람들의 이야기를 모아갑니다.</p></section>
       {testimonials.some((item) => item.isExample) && <aside className={styles.notice}>아래 예시 문구와 프로필은 화면 개발을 위해 만든 가상의 내용입니다. 실제 참가자의 추천사가 아닙니다.</aside>}

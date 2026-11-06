@@ -15,15 +15,20 @@
     "test:auth": "tsx --test tests/auth.test.ts",
     "test:access": "npm run build && tsx --test tests/access.test.ts",
     "auth:check": "tsx scripts/auth-check.ts",
+    "test:profile": "tsx --test tests/account-profile.test.ts",
+    "test:wiki": "tsx --test tests/wiki-media.test.ts",
+    "test:content": "tsx --test tests/content-management.test.ts",
     "test:members": "tsx --test tests/membership.test.ts"
   },
   "dependencies": {
+    "@vercel/blob": "^2.8.2",
     "better-auth": "1.7.10",
     "next": "16.4.2",
     "pg": "^8.23.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "server-only": "^0.0.1",
+    "sharp": "^0.35.5",
     "zod": "^4.6.7"
   },
   "devDependencies": {
@@ -38,5 +43,10 @@
     "eslint-config-next": "16.4.2",
     "tsx": "^4.23.15",
     "typescript": "^5"
+  },
+  "overrides": {
+    "@vercel/cli-config": {
+      "zod": "$zod"
+    }
   }
 }

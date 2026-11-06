@@ -1,10 +1,6 @@
-import SiteHeader from "@/components/site-header";
 import Link from "next/link";
 import { getHomeContent } from "@/lib/home";
 import styles from "./page.module.css";
-
-
-
 
 // 요청 시 DB 또는 세션을 확인하므로 서버 응답을 기다립니다.
 export const instant = false;
@@ -15,7 +11,7 @@ export default async function Home() {
     <div className={styles.page}>
       <a href="#main" className={styles.skip}>본문으로 바로가기</a>
       <div className={styles.cover}>
-        <SiteHeader />
+
         <main id="main">
           <section className={styles.hero} aria-labelledby="hero-title">
             <p className={styles.eyebrow}>EVERY BEGINNING NEEDS A COMMUNITY</p>
