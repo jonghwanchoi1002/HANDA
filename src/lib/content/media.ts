@@ -1,10 +1,11 @@
+import { MAX_UPLOAD_IMAGE_BYTES, MAX_IMAGE_EDGE_LENGTH } from "./image-limits";
 import { randomUUID } from "node:crypto";
 import sharp from "sharp";
 import type { Pool } from "pg";
 import { canManageMembers, canReadWiki } from "../auth/permissions";
 import { imageURLs, canReadMedia, type MediaViewer } from "./media-access";
 
-export const MAX_IMAGE_BYTES=3*1024*1024;
+export const MAX_IMAGE_BYTES=MAX_UPLOAD_IMAGE_BYTES;
 export class MediaError extends Error { constructor(message:string,public status=400){super(message);} }
 export type ImageStore={put:(pathname:string,body:Buffer)=>Promise<string>;remove:(pathname:string)=>Promise<void>;get:(pathname:string)=>Promise<ReadableStream<Uint8Array>|null>};
 export async function normalizeImage(bytes:Buffer) {
@@ -14,7 +15,7 @@ export async function normalizeImage(bytes:Buffer) {
     const metadata=await image.metadata();
     if(!["jpeg","png","webp"].includes(metadata.format ?? "") || (metadata.pages ?? 1)>1)throw new Error();
     // 원본 위치 정보·메타데이터를 제거하고 실제 이미지로 다시 인코딩합니다.
-    const result=await image.rotate().resize({width:2400,height:2400,fit:"inside",withoutEnlargement:true}).webp({quality:85}).toBuffer({resolveWithObject:true});
+    const result=await image.rotate().resize({width:MAX_IMAGE_EDGE_LENGTH,height:MAX_IMAGE_EDGE_LENGTH,fit:"inside",withoutEnlargement:true}).webp({quality:85}).toBuffer({resolveWithObject:true});
     return {bytes:result.data,width:result.info.width,height:result.info.height};
   }catch {throw new MediaError("JPG, PNG, WebP 사진 파일을 선택해 주세요.");}
 }
