@@ -91,3 +91,21 @@ test("homepage design migrates only legacy copy and admins can edit every About 
     await assert.rejects(saveManagedContent(c.pool,"admin",{...entry,payload:{...payload,aboutValue1Title:""},revision:revision+1,status:"published"}));
   }finally{await c.close();}
 });
+
+test("reference hero migration replaces WIP copy once, preserves About edits, and remains editable",async()=>{
+  const c=await setup();try{
+    const home=getInitialContent().find(entry=>entry.kind==="home")!;
+    const initial={...(home.payload as Record<string,unknown>),heroTitle:"WIP",heroSubtitle:"테스트",heroHighlight:"개발 중",heroDescription:["테스트 설명"],aboutTitle:["수정한 소개"],aboutValue1Title:"맞춤 항목"};
+    await saveManagedContent(c.pool,"admin",{...home,payload:initial,revision:0,status:"published"});
+    const migration=await readFile(new URL("../database/migrations/010_home_reference_hero_copy.sql",import.meta.url),"utf8");
+    await c.pool.query(migration);
+    const published=(await readPublishedContent(c.query,"home"))[0];
+    assert.equal(published.heroTitle,"혼자 고민하던 일을,");assert.equal(published.heroSubtitle,"함께 풀어가는");assert.equal(published.heroHighlight,"곳.");
+    assert.deepEqual(published.heroDescription,["낯선 환경에서 시작하는 창업. 경험을 나눌 동료가 있다면 달라집니다."]);
+    assert.deepEqual(published.aboutTitle,["수정한 소개"]);assert.equal(published.aboutValue1Title,"맞춤 항목");
+    const before=(await c.pool.query("SELECT revision FROM handa_content WHERE kind='home'")).rows[0].revision;
+    await c.pool.query(migration);assert.equal((await c.pool.query("SELECT revision FROM handa_content WHERE kind='home'")).rows[0].revision,before);
+    await saveManagedContent(c.pool,"admin",{...home,payload:{...published,heroTitle:"이후 관리자 수정"},revision:before,status:"published"});
+    assert.equal((await readPublishedContent(c.query,"home"))[0].heroTitle,"이후 관리자 수정");
+  }finally{await c.close();}
+});
