@@ -1,19 +1,20 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/session";
+import { getAccountProfile } from "@/lib/auth/account-profile";
+import { getDatabase } from "@/lib/content/database";
+import { authAvailability } from "@/lib/auth/server";
 import { canReadWiki } from "@/lib/auth/permissions";
 import AccountShell from "@/components/account-shell";
+import ApprovalWaiting from "./approval-waiting";
+import ProfileForm from "./profile-form";
 import styles from "@/app/login/auth.module.css";
-// 요청 시 DB 또는 세션을 확인하므로 서버 응답을 기다립니다.
-export const instant = false;
-
-export const metadata: Metadata = { title: "내 계정 | HANDA", robots: { index: false, follow: false } };
-export default async function AccountPage() {
-  const user = await getCurrentUser(); if (!user) redirect("/login");
-  const approved = canReadWiki(user);
-  return <AccountShell><p className={styles.eyebrow}>MY HANDA</p><h1>{user.name}님, 안녕하세요.</h1><p className={styles.intro}>{user.email}</p>
-    <section className={styles.box}><h2>{approved ? "이용 승인 완료" : user.approvalStatus === "rejected" ? "가입 신청이 승인되지 않았습니다." : "관리자 승인 대기 중"}</h2><p className={styles.intro}>{approved ? "비즈니스 위키를 읽고 글을 작성할 수 있습니다. 본인이 작성한 글은 직접 수정할 수 있으며, 관리자의 승인 후 공개됩니다." : "공개된 소개와 모임 후기는 계속 볼 수 있습니다. 비즈니스 위키는 관리자 승인 후 이용할 수 있습니다."}</p>{!user.emailVerified && <p className={styles.message}>이메일 확인이 필요합니다.</p>}
-      {approved && <div className={styles.links}><Link href="/account/posts">내가 쓴 글 ↗</Link></div>}</section>
-  </AccountShell>;
+export const instant=false;
+export const metadata:Metadata={title:"내 계정 | HANDA",robots:{index:false,follow:false}};
+export default async function AccountPage(){
+  const user=await getCurrentUser();if(!user)redirect("/login");
+  if(user.approvalStatus==="pending")return <AccountShell><ApprovalWaiting/></AccountShell>;
+  if(!canReadWiki(user))return <AccountShell><p className={styles.intro}>{user.approvalStatus==="rejected"?"이용 승인이 중지되었습니다. 관리자에게 문의해 주세요.":"이메일 확인이 필요합니다."}</p></AccountShell>;
+  const profile=await getAccountProfile(getDatabase(),user.id);if(!profile)redirect("/login");
+  return <AccountShell><p className={styles.eyebrow}>MY HANDA</p><h1>{profile.name}님, 안녕하세요.</h1><p className={styles.intro}>개인정보를 확인하고 변경할 수 있습니다.</p><ProfileForm profile={{name:profile.name,email:profile.email,image:profile.image,googleLinked:profile.googleLinked,hasPassword:profile.hasPassword}} emailEnabled={authAvailability().email}/></AccountShell>;
 }

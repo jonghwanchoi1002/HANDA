@@ -3,7 +3,7 @@ import NavDropdown from "./nav-dropdown";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import styles from "./site-header.module.css";
-const menus = [["/#about","HANDA 소개"],["/members","멤버소개"],["/wiki","비즈니스 위키"],["/stories","정기모임 후기"],["/testimonials","Testimonial"]];
+const menus = [["/#about","HANDA 소개"],["/members","멤버 소개"],["/wiki","비즈니스 위키"],["/stories","정기모임 후기"],["/testimonials","Testimonial"]];
 export default function SiteHeader({accountMenu}:{accountMenu:React.ReactNode}) {
   const path=usePathname();
   return <header className={styles.header} data-site-header>

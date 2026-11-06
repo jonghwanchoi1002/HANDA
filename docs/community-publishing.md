@@ -24,7 +24,7 @@ npm run dev
 NODE_ENV=production npm run db:migrate
 ```
 
-`005_member_wiki_media.sql`은 콘텐츠 작성자와 업로드한 사진의 저장 위치를 기록합니다. `006_wiki_publication_review.sql`은 위키 전용 공개 대기 상태를 추가합니다. 회원 가입 상태나 관리자 권한은 변경하지 않습니다.
+`005_member_wiki_media.sql`은 콘텐츠 작성자와 업로드한 사진의 저장 위치를 기록합니다. `006_wiki_publication_review.sql`은 위키 전용 공개 대기 상태를 추가합니다. 최신 내 계정 화면과 승인 안내에는 `007_account_profile_notice.sql`도 필요합니다 ([개인정보 안내](account-profile.md)). 회원 가입 상태나 관리자 권한은 변경하지 않습니다.
 
 ## Vercel Blob 연결
 

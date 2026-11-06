@@ -115,3 +115,7 @@ Neon 연결 시 서버에서만 DB에 접근하며, PC의 연결 문자열은 `.
 `004_content_management.sql`과 `005_member_wiki_media.sql`을 대상 DB에 적용합니다. 사진 첨부에는 **Private** Vercel Blob 저장소의 `BLOB_READ_WRITE_TOKEN`이 필요합니다. `npm run test:wiki`로 회원 작성 권한과 사진 접근 권한을 검증할 수 있습니다. 앞 절의 관리자만 작성·사진 업로드 미구현 안내보다 이 절의 최신 범위를 우선합니다.
 
 위키 글 공개에는 관리자 승인이 필요합니다. `006_wiki_publication_review.sql` 적용 후 멤버는 임시 저장·공개 대기로 저장하며 관리자가 콘텐츠 관리에서 공개합니다. 내가 쓴 글은 `/account/posts`로 이동했고, 관리·내 글·로그아웃 메뉴는 내 계정 드롭다운에서 사용할 수 있습니다.
+
+## 내 계정 · 승인 완료 안내
+
+[개인정보와 일회성 승인 팝업 안내](docs/account-profile.md)를 참고하세요. 승인 대기 계정에는 안내 문구만 표시하며, 승인된 계정은 이름·이메일·비밀번호를 관리합니다. Google 연결 계정은 이름만 수정하고 이메일은 읽기 전용입니다. 프로필 사진 변경은 준비 중입니다. `007_account_profile_notice.sql`은 승인 안내의 계정별 확인 기록을 DB에 저장하며, `npm run test:profile`로 확인할 수 있습니다.

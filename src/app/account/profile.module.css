@@ -1,0 +1,7 @@
+.sections { display:grid; gap:0; }
+.sections h2 { font-size:21px; margin:0 0 22px; }
+.photoRow { display:flex; gap:20px; align-items:center; flex-wrap:wrap; }
+.avatar { width:88px; height:88px; flex-shrink:0; border-radius:50%; background:#e5ebdd; color:#425d32; display:grid; place-items:center; font-size:32px; font-weight:700; overflow:hidden; }
+.avatar img { display:block; width:100%; height:100%; object-fit:cover; }
+.readonly { display:grid; gap:8px; font-size:14px; margin-bottom:22px; }
+.readonly input { width:100%; padding:12px 14px; font:inherit; background:#f4f5f0; border:1px solid #dbe1d4; border-radius:4px; color:#626e64; }

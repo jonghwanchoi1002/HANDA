@@ -14,7 +14,7 @@ import { parseContent } from "../src/lib/content/schema";
 
 test("running Next.js protects wiki HTML/RSC, reads current approval and keeps other pages public", {timeout:60000}, async () => {
   const db=new PGlite();
-  for (const name of ["001_content.sql","002_member_auth.sql","003_member_management.sql","004_content_management.sql","005_member_wiki_media.sql","006_wiki_publication_review.sql"]) await db.exec(await readFile(new URL(`../database/migrations/${name}`,import.meta.url),"utf8"));
+  for (const name of ["001_content.sql","002_member_auth.sql","003_member_management.sql","004_content_management.sql","005_member_wiki_media.sql","006_wiki_publication_review.sql","007_account_profile_notice.sql"]) await db.exec(await readFile(new URL(`../database/migrations/${name}`,import.meta.url),"utf8"));
   const socket=new PGLiteSocketServer({db,host:"127.0.0.1",port:55445,maxConnections:20});await socket.start();
   const databaseURL="postgresql://postgres@127.0.0.1:55445/postgres";
   const pool=new Pool({connectionString:databaseURL,max:1});
@@ -44,6 +44,7 @@ test("running Next.js protects wiki HTML/RSC, reads current approval and keeps o
       }
     }
     await checkDenied("/wiki");await checkDenied("/wiki/private-test");await checkDenied("/admin");await checkDenied("/admin/members");await checkDenied("/admin/content");await checkDenied("/admin/content/wiki/new");await checkDenied("/wiki/new");await checkDenied("/wiki/mine");
+    assert.equal((await fetch(baseURL+"/api/account/approval")).status,401);
     const homepage=await(await fetch(baseURL)).text();for(const text of privateValues)assert.ok(!homepage.includes(text));
     assert.ok(homepage.includes('aria-label="내 계정"'));
     assert.ok(!homepage.includes("계정 확인 중"));
@@ -87,7 +88,9 @@ test("running Next.js protects wiki HTML/RSC, reads current approval and keeps o
     assert.ok(!adminHome.includes(">콘텐츠 관리</a>"));
     const account=await(await fetch(baseURL+"/account",{headers:{cookie}})).text();
     assert.ok(account.includes('aria-label="주 메뉴"'));
-    assert.ok(account.includes("내가 쓴 글 ↗"));
+    assert.ok(account.includes("개인정보를 확인하고 변경할 수 있습니다."));
+    assert.ok(account.includes("현재 이메일"));
+    assert.ok(!account.includes("내가 쓴 글 ↗"));
     assert.ok(!account.includes("홈페이지로"));
     const editor=await fetch(baseURL+"/admin/content/wiki/private-test",{headers:{cookie}});assert.ok((await editor.text()).includes("PRIVATE_TITLE_93847"));
     const admin=await fetch(baseURL+"/admin/members",{headers:{cookie}});const adminBody=await admin.text();assert.ok(adminBody.includes("회원 관리"));
