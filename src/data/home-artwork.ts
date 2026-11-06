@@ -1,3 +1,2 @@
-// Set this to the supplied local asset URL once the original photo file is available.
-// Keeping it null avoids broken image requests while the attachment is unavailable.
-export const homeMainPhoto: string | null = null;
+// Original photo supplied in Main Photo.zip; shared by the hero and journal card.
+export const homeMainPhoto = "/brand/handa-main.jpg";
