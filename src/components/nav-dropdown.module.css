@@ -7,3 +7,6 @@
 .panel a,.panel button { display:block; width:100%; text-align:left; padding:12px 14px; font:inherit; font-size:14px; font-weight:500; border:0; border-radius:4px; color:inherit; background:transparent; cursor:pointer; }
 .panel a:hover,.panel button:hover { background:var(--sage); }
 .panel p { margin:8px; font-size:13px; }
+
+.active { border-bottom-color: var(--brass); }
+.panel a[aria-current="page"] { background: var(--sage); font-weight: 700; }
