@@ -14,7 +14,7 @@ import { parseContent } from "../src/lib/content/schema";
 
 test("running Next.js protects wiki HTML/RSC, reads current approval and keeps other pages public", {timeout:60000}, async () => {
   const db=new PGlite();
-  for (const name of ["001_content.sql","002_member_auth.sql","003_member_management.sql","004_content_management.sql","005_member_wiki_media.sql","006_wiki_publication_review.sql","007_account_profile_notice.sql"]) await db.exec(await readFile(new URL(`../database/migrations/${name}`,import.meta.url),"utf8"));
+  for (const name of ["001_content.sql","002_member_auth.sql","003_member_management.sql","004_content_management.sql","005_member_wiki_media.sql","006_wiki_publication_review.sql","007_account_profile_notice.sql","008_profile_visibility.sql"]) await db.exec(await readFile(new URL(`../database/migrations/${name}`,import.meta.url),"utf8"));
   const socket=new PGLiteSocketServer({db,host:"127.0.0.1",port:55445,maxConnections:20});await socket.start();
   const databaseURL="postgresql://postgres@127.0.0.1:55445/postgres";
   const pool=new Pool({connectionString:databaseURL,max:1});
@@ -90,6 +90,9 @@ test("running Next.js protects wiki HTML/RSC, reads current approval and keeps o
     assert.ok(account.includes('aria-label="주 메뉴"'));
     assert.ok(account.includes("개인정보를 확인하고 변경할 수 있습니다."));
     assert.ok(account.includes("현재 이메일"));
+    assert.ok(account.includes("개인정보 공개 범위"));
+    assert.ok(account.includes("내 HANDA 히스토리"));
+    assert.ok(account.includes("추후 추가 예정"));
     assert.ok(!account.includes("내가 쓴 글 ↗"));
     assert.ok(!account.includes("홈페이지로"));
     const editor=await fetch(baseURL+"/admin/content/wiki/private-test",{headers:{cookie}});assert.ok((await editor.text()).includes("PRIVATE_TITLE_93847"));

@@ -5,11 +5,12 @@ import { PGlite } from "@electric-sql/pglite";
 import { PGLiteSocketServer } from "@electric-sql/pglite-socket";
 import { Pool } from "pg";
 import { createHandaAuth, type AuthMail } from "../src/lib/auth/config";
-import { getAccountProfile, getApprovalNotice, acknowledgeApprovalNotice } from "../src/lib/auth/account-profile";
+import { getAccountProfile, getApprovalNotice, acknowledgeApprovalNotice, updateProfileVisibility } from "../src/lib/auth/account-profile";
+import { canViewMemberProfile } from "../src/lib/auth/profile-visibility";
 import { changeMembershipStatus } from "../src/lib/auth/membership";
 
 async function setup(){
- const db=new PGlite();for(const file of ["002_member_auth.sql","003_member_management.sql","007_account_profile_notice.sql"])await db.exec(await readFile(new URL(`../database/migrations/${file}`,import.meta.url),"utf8"));
+ const db=new PGlite();for(const file of ["002_member_auth.sql","003_member_management.sql","007_account_profile_notice.sql","008_profile_visibility.sql"])await db.exec(await readFile(new URL(`../database/migrations/${file}`,import.meta.url),"utf8"));
  const server=new PGLiteSocketServer({db,host:"127.0.0.1",port:55449,maxConnections:10});await server.start();const pool=new Pool({connectionString:"postgresql://postgres@127.0.0.1:55449/postgres",max:3});
  await pool.query(`INSERT INTO handa_auth_user(id,name,email,role,approval_status,"emailVerified") VALUES('admin','관리자','admin@example.test','admin','approved',true)`);
  const mails:AuthMail[]=[];const base="http://localhost:3000";const auth=createHandaAuth({database:pool,baseURL:base,secret:"test-only-profile-secret-not-used-in-production-123456",sendMail:async message=>{mails.push(message);}});
@@ -79,4 +80,31 @@ test("migration gives existing approved members one notice while pending account
   const result=await db.query("SELECT id,approval_notice_version,approval_notice_seen_version FROM handa_auth_user ORDER BY id");
   assert.deepEqual(result.rows,[{id:"existing",approval_notice_version:1,approval_notice_seen_version:0},{id:"waiting",approval_notice_version:0,approval_notice_seen_version:0}]);
  }finally{await db.close();}
+});
+
+
+test("visibility defaults private, persists only for an approved account and leaves the true join date unchanged",async()=>{
+ const c=await setup();try{
+  const id=await c.signup("visibility@example.test");const initial=await getAccountProfile(c.pool,id);
+  assert.equal(initial?.profileVisibility,"private");assert.ok(initial?.joinedAt instanceof Date);
+  const joined=initial!.joinedAt.toISOString();
+  await assert.rejects(updateProfileVisibility(c.pool,id,"public"),/이용 승인/);
+  await changeMembershipStatus(c.pool,"admin",id,"approved");
+  for(const value of ["members","public","private"]){await updateProfileVisibility(c.pool,id,value);assert.equal((await getAccountProfile(c.pool,id))?.profileVisibility,value);}
+  await assert.rejects(updateProfileVisibility(c.pool,id,"admins"),/다시 선택/);
+  await assert.rejects(updateProfileVisibility(c.pool,id,"public'; UPDATE handa_auth_user SET role='admin'; --"),/다시 선택/);
+  assert.equal((await getAccountProfile(c.pool,"admin"))?.profileVisibility,"private");
+  const final=await getAccountProfile(c.pool,id);assert.equal(final?.profileVisibility,"private");assert.equal(final?.joinedAt.toISOString(),joined);assert.equal(final?.role,"member");
+  await changeMembershipStatus(c.pool,"admin",id,"rejected");await assert.rejects(updateProfileVisibility(c.pool,id,"public"),/이용 승인/);
+ }finally{await c.close();}
+});
+
+test("future public-profile policy respects privacy, approved membership, and withdrawn owners",()=>{
+ const base={id:"owner",role:"member",approvalStatus:"approved",emailVerified:true};
+ const member={...base,id:"viewer"};const admin={...member,role:"admin"};
+ const privateOwner={...base,profileVisibility:"private" as const};const memberOwner={...base,profileVisibility:"members" as const};const publicOwner={...base,profileVisibility:"public" as const};
+ assert.equal(canViewMemberProfile(privateOwner,base),true);assert.equal(canViewMemberProfile(privateOwner,member),false);assert.equal(canViewMemberProfile(privateOwner,admin),false);
+ assert.equal(canViewMemberProfile(memberOwner,null),false);assert.equal(canViewMemberProfile(memberOwner,member),true);assert.equal(canViewMemberProfile(memberOwner,admin),true);
+ assert.equal(canViewMemberProfile(memberOwner,{...member,approvalStatus:"pending"}),false);assert.equal(canViewMemberProfile(memberOwner,{...member,emailVerified:false}),false);
+ assert.equal(canViewMemberProfile(publicOwner,null),true);assert.equal(canViewMemberProfile({...publicOwner,approvalStatus:"rejected"},null),false);
 });
