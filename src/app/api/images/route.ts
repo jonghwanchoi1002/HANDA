@@ -1,3 +1,4 @@
+import { getBlobToken } from "@/lib/content/blob-config";
 import { getCurrentUser } from "@/lib/auth/session";
 import { canReadWiki } from "@/lib/auth/permissions";
 import { getDatabase } from "@/lib/content/database";
@@ -6,7 +7,7 @@ import { uploadImage, MediaError, MAX_IMAGE_BYTES } from "@/lib/content/media";
 export async function POST(request:Request) {
   if(request.headers.get("origin")!==new URL(request.url).origin)return Response.json({message:"요청한 사이트를 확인해 주세요."},{status:403});
   const user=await getCurrentUser();if(!canReadWiki(user))return Response.json({message:"승인된 회원만 사진을 첨부할 수 있습니다."},{status:403});
-  if(!process.env.BLOB_READ_WRITE_TOKEN||process.env.CONTENT_SOURCE!=="database")return Response.json({message:"사진 저장소를 준비 중입니다."},{status:503});
+  if(!getBlobToken()||process.env.CONTENT_SOURCE!=="database")return Response.json({message:"사진 저장소를 준비 중입니다."},{status:503});
   try {
     const limit=MAX_IMAGE_BYTES+65536;
     if(Number(request.headers.get("content-length"))>limit)throw new MediaError("사진은 한 장에 3MB 이하로 첨부해 주세요.",413);

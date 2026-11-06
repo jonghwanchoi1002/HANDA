@@ -29,8 +29,8 @@ NODE_ENV=production npm run db:migrate
 ## Vercel Blob 연결
 
 1. Vercel의 프로젝트 Storage에서 Blob 저장소를 만들고 **Private** 접근 방식을 선택합니다. Public 저장소를 사용하지 않습니다.
-2. 테스트용 저장소는 Preview·Development에 연결하고 운영용 저장소는 Production에 별도로 연결하는 것을 권장합니다.
-3. 연결하면 생성되는 `BLOB_READ_WRITE_TOKEN`을 해당 배포 환경 변수에 설정합니다. 토큰을 GitHub나 채팅에 올리지 않습니다. 프로젝트에 자동 추가됐다면 중복 등록할 필요가 없습니다.
+2. 테스트용 저장소는 `BLOB` prefix로 Preview·Development에만, 운영용 저장소는 `BLOB_PROD` prefix로 Production에만 연결합니다. 생성 화면에서 Production·Preview에 자동 연결될 수 있으므로 생성 후 저장소 Projects → 연결 Configure에서 환경 범위를 확인합니다.
+3. read-write token 옵션을 체크합니다. 개발용은 `BLOB_READ_WRITE_TOKEN`, 운영용은 `BLOB_PROD_READ_WRITE_TOKEN`을 사용합니다. 토큰을 GitHub나 채팅에 올리지 않습니다. 프로젝트에 자동 추가됐다면 중복 등록할 필요가 없습니다.
 4. PC에서 테스트할 때는 테스트 저장소의 토큰을 `.env.local`에 넣고 개발 서버를 재시작합니다.
 5. Vercel 환경 변수 변경은 재배포 후 반영됩니다. `CONTENT_SOURCE=database`와 대상 DB 마이그레이션도 필요합니다.
 
@@ -76,3 +76,5 @@ Blob SDK의 간접 의존성 `@vercel/cli-config`가 고정한 구버전 Zod 대
 드롭다운은 공통 `NavDropdown` 컴포넌트로 작성해 다른 메뉴에도 사용할 수 있습니다. 클릭·키보드로 열 수 있고 Escape·바깥 클릭으로 닫으며, 작은 화면의 가로 내비바에 잘리지 않도록 별도 포털에 표시합니다.
 
 원본 용량 확대는 실제 브라우저에서 약 13MB PNG와 4,800만 화소 JPEG를 첨부해 전송 용량·크기 조절과 글 저장까지 확인했습니다. 원본 15MB 초과 차단과 WebP 인코딩 미지원 브라우저의 JPEG 대체도 검증했으며, 서버의 기존 이미지 검증·접근 권한 검사는 유지합니다.
+
+Vercel이 제공하는 `VERCEL_ENV=production`에서는 운영 토큰만 읽고, Preview와 PC에서는 개발 토큰만 읽습니다. 다른 환경의 토큰으로 자동 대체하지 않으며 SDK의 업로드·읽기·삭제에도 선택한 토큰을 명시적으로 전달합니다. SDK에 맞추기 위해 동일한 토큰을 다른 변수 이름으로 복사할 필요는 없습니다.
