@@ -5,7 +5,7 @@ import { requireAdmin } from "@/lib/auth/session";
 import { getDatabase } from "@/lib/content/database";
 import { saveManagedContent, ContentManagementError } from "@/lib/content/management";
 
-export type SaveState = { message: string; saved?: boolean; revision?: number; path?: string };
+export type SaveState = { message: string; saved?: boolean; revision?: number; path?: string; reviewRequested?: boolean };
 export async function saveContent(_previous: SaveState, form: FormData): Promise<SaveState> {
   const admin = await requireAdmin();
   if (process.env.CONTENT_SOURCE !== "database") return {message:"현재 콘텐츠를 저장할 수 없습니다. 사이트 설정을 확인해 주세요."};
