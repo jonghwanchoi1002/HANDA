@@ -17,7 +17,8 @@ export const metadata:Metadata={title:"내 계정 | HANDA",robots:{index:false,f
 export default async function AccountPage(){
   const user=await getCurrentUser();if(!user)redirect("/login");
   if(user.approvalStatus==="pending")return <AccountShell><ApprovalNotice/><ApprovalWaiting name={user.name} email={user.email}/></AccountShell>;
-  if(!canReadWiki(user))return <AccountShell><p className={styles.intro}>{user.approvalStatus==="rejected"?"이용 승인이 중지되었습니다. 관리자에게 문의해 주세요.":"이메일 확인이 필요합니다."}</p></AccountShell>;
+  if(user.approvalStatus==="rejected")return <AccountShell><ApprovalWaiting name={user.name} email={user.email} stopped/></AccountShell>;
+  if(!canReadWiki(user))return <AccountShell><p className={styles.intro}>이메일 확인이 필요합니다.</p></AccountShell>;
   const profile=await getAccountProfile(getDatabase(),user.id);if(!profile)redirect("/login");
   return <AccountShell><ApprovalNotice/><p className={styles.eyebrow}>MY HANDA</p><h1>{profile.name}님, 안녕하세요.</h1><p className={styles.intro}>개인정보를 확인하고 변경할 수 있습니다.</p><ProfileForm profile={{name:profile.name,email:profile.email,image:profile.image,googleLinked:profile.googleLinked,hasPassword:profile.hasPassword}} emailEnabled={authAvailability().email}/><VisibilityForm initialValue={profile.profileVisibility}/><HandaHistory joinedAt={profile.joinedAt}/></AccountShell>;
 }
