@@ -1,7 +1,9 @@
 "use client";
+import LeaveDialog from "@/components/leave-dialog";
+import type { ContentStatus } from "@/lib/content/status";
 import PhotoPicker, { type Photo } from "@/components/photo-picker";
 import { saveWiki } from "@/app/wiki/actions";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { editorFields } from "@/lib/content/editor-fields";
@@ -14,10 +16,10 @@ import styles from "./content.module.css";
 type Section = {title:string;body:string};
 type Block = ContentMap["story"]["blocks"][number];
 const lines=(value:FormDataEntryValue|null)=>String(value ?? "").split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
-export default function ContentEditor({entry: initialEntry,mode="admin",uploadsEnabled=false}:{entry:ManagedContent;mode?:"admin"|"wiki";uploadsEnabled?:boolean}) {
+export default function ContentEditor({entry: initialEntry,mode="admin",uploadsEnabled=false,canPublish=mode==="admin"}:{entry:ManagedContent;mode?:"admin"|"wiki";uploadsEnabled?:boolean;canPublish?:boolean}) {
   const [entry]=useState(initialEntry);
   const router=useRouter();
-  const listPath=mode==="wiki"?"/wiki/mine":`/admin/content?kind=${entry.kind}`;
+  const listPath=mode==="wiki"?"/account/posts":`/admin/content?kind=${entry.kind}`;
   const [uploading,setUploading]=useState(false);
   const [photos,setPhotos]=useState<Photo[]>(()=>{
     if(entry.kind==="wiki")return (entry.payload.photos as Photo[]|undefined)??[];
@@ -29,13 +31,20 @@ export default function ContentEditor({entry: initialEntry,mode="admin",uploadsE
   const [values,setValues]=useState<Record<string,string>>(()=>Object.fromEntries(editorFields[entry.kind].map(field=>{
     const value=entry.payload[field.key];return [field.key,Array.isArray(value)?value.join("\n"):String(value ?? "")];
   })));
-  const [status,setStatus]=useState(entry.status);
+  const [status,setStatus]=useState<ContentStatus>(!canPublish&&entry.status==="published"?"pending":entry.status);
+  const [leaveTarget,setLeaveTarget]=useState<string|null>(null);
   const [order,setOrder]=useState(String(entry.order));
   const [example,setExample]=useState(Boolean(entry.payload.isExample));
   const [consent,setConsent]=useState(entry.consent);
   const [sections,setSections]=useState<Section[]>(()=>((entry.payload.sections ?? []) as ContentMap["wiki"]["sections"]).map(section=>({title:section.title,body:section.paragraphs.join("\n")})));
   const [blocks,setBlocks]=useState<Block[]>(()=>entry.payload.blocks as Block[] ?? []);
   const [dirty,setDirty]=useState(false);
+  const savedSnapshot=useRef({values,status,order,example,consent,sections,blocks,photos});
+  function discardAndGo(){
+    const saved=savedSnapshot.current;
+    setValues(saved.values);setStatus(saved.status);setOrder(saved.order);setExample(saved.example);setConsent(saved.consent);setSections(saved.sections);setBlocks(saved.blocks);setPhotos(saved.photos);
+    const target=leaveTarget!;setDirty(false);setLeaveTarget(null);router.push(target);
+  }
   useEffect(()=>{
     if(!dirty)return;
     const beforeUnload=(event:BeforeUnloadEvent)=>{event.preventDefault();event.returnValue="";};
@@ -57,6 +66,7 @@ export default function ContentEditor({entry: initialEntry,mode="admin",uploadsE
     const request=new FormData();request.set("entry",JSON.stringify({...entry,payload,revision:previous.revision ?? entry.revision,status:entry.kind==="home"?"published":String(form.get("status")),consent:form.get("consent")==="on",order:mode==="wiki"?entry.order:Number(form.get("order"))}));
     const result=await (mode==="wiki"?saveWiki:saveContent)(previous,request);
     if(result.saved) {
+      savedSnapshot.current={values,status,order,example,consent,sections,blocks,photos};
       setDirty(false);
       if(entry.revision===0 && result.path) router.replace(result.path);
     }
@@ -64,8 +74,8 @@ export default function ContentEditor({entry: initialEntry,mode="admin",uploadsE
     return {...result,revision:result.revision ?? previous.revision};
   },{message:""});
   function move<T>(items:T[],index:number,offset:number):T[] { const result=[...items];const next=index+offset;if(next<0||next>=items.length)return items;[result[index],result[next]]=[result[next],result[index]];return result; }
-  const confirmLeave=(event:React.MouseEvent<HTMLAnchorElement>)=>{if(dirty&&!window.confirm("저장하지 않은 변경 내용이 있습니다. 페이지를 이동할까요?"))event.preventDefault();};
-  return <form action={action} onChange={()=>setDirty(true)} className={styles.editor}>
+  const confirmLeave=(event:React.MouseEvent<HTMLAnchorElement>)=>{if(dirty){event.preventDefault();setLeaveTarget(listPath);}};
+  return <><form action={action} onChange={()=>setDirty(true)} className={styles.editor}>
     <fieldset disabled={pending||uploading}><legend>기본 내용</legend>{editorFields[entry.kind].map(field=>{
       const value=values[field.key];
       const update=(next:string)=>setValues(items=>({...items,[field.key]:next}));
@@ -77,7 +87,9 @@ export default function ContentEditor({entry: initialEntry,mode="admin",uploadsE
     {entry.kind==="story" && <fieldset disabled={pending}><legend>본문 사진 첨부</legend><PhotoPicker kind={entry.kind} contentKey={entry.key} photos={blocks.flatMap(block=>block.type==="image"?[block.image]:[])} onChange={next=>{
       setBlocks(previous=>[...previous.filter(block=>block.type!=="image"||next.some(photo=>photo.url===block.image.url)),...next.filter(photo=>!previous.some(block=>block.type==="image"&&block.image.url===photo.url)).map(photo=>({id:crypto.randomUUID(),type:"image" as const,image:{...photo,id:crypto.randomUUID(),caption:photo.alt}}))]);setDirty(true);
     }} enabled={uploadsEnabled} disabled={pending||uploading} onBusy={setUploading} max={photos.length?9:10}/></fieldset>}
-    <fieldset disabled={pending||uploading}><legend>공개 설정</legend>{entry.kind!=="home" && <><label className={styles.field}>공개 상태<select name="status" value={status} onChange={event=>setStatus(event.target.value as "draft"|"published")}><option value="draft">임시 저장 (방문자에게 보이지 않음)</option><option value="published">공개</option></select></label>{mode==="admin" && <label className={styles.check}><input type="checkbox" name="isExample" checked={example} onChange={event=>setExample(event.target.checked)}/>화면 예시용 콘텐츠입니다.</label>}</>}{entry.kind==="home" && <p className={styles.help}>홈 소개는 저장하면 바로 공개됩니다.</p>}{entry.kind==="testimonial" && <label className={styles.check}><input type="checkbox" name="consent" checked={consent} onChange={event=>setConsent(event.target.checked)}/>참가자에게 이 내용의 공개 동의를 받았습니다.</label>}{mode==="admin" && <label className={styles.field}>표시 순서 (작은 숫자가 먼저 표시됨)<input type="number" name="order" min={-100000} max={100000} step={1} value={order} onChange={event=>setOrder(event.target.value)} required/></label>}<div className={styles.controls}><button className={`${common.button} ${common.primary}`} disabled={pending||uploading}>{pending?"저장 중…":"저장"}</button><Link href={listPath} onClick={confirmLeave}>목록으로</Link></div></fieldset>
+    {!canPublish&&entry.status==="published"&&<p className={styles.help}>공개된 글을 수정해 저장하면 비공개로 전환됩니다. 수정한 내용은 관리자가 다시 승인한 뒤 공개됩니다.</p>}
+    {!canPublish&&<p className={styles.help}>작성을 마치면 ‘작성 완료 · 공개 대기 중’으로 저장해 주세요. 관리자가 확인한 뒤 공개합니다.</p>}
+    <fieldset disabled={pending||uploading}><legend>{canPublish?"공개 설정":"작성 상태"}</legend>{entry.kind!=="home" && <><label className={styles.field}>{canPublish?"공개 상태":"작성 상태"}<select name="status" value={status} onChange={event=>setStatus(event.target.value as ContentStatus)}><option value="draft">임시 저장 (방문자에게 보이지 않음)</option>{entry.kind==="wiki"&&<option value="pending">작성 완료 · 공개 대기 중</option>}{canPublish&&<option value="published">공개</option>}</select></label>{mode==="admin" && <label className={styles.check}><input type="checkbox" name="isExample" checked={example} onChange={event=>setExample(event.target.checked)}/>화면 예시용 콘텐츠입니다.</label>}</>}{entry.kind==="home" && <p className={styles.help}>홈 소개는 저장하면 바로 공개됩니다.</p>}{entry.kind==="testimonial" && <label className={styles.check}><input type="checkbox" name="consent" checked={consent} onChange={event=>setConsent(event.target.checked)}/>참가자에게 이 내용의 공개 동의를 받았습니다.</label>}{mode==="admin" && <label className={styles.field}>표시 순서 (작은 숫자가 먼저 표시됨)<input type="number" name="order" min={-100000} max={100000} step={1} value={order} onChange={event=>setOrder(event.target.value)} required/></label>}<div className={styles.controls}><button className={`${common.button} ${common.primary}`} disabled={pending||uploading}>{pending?"저장 중…":"저장"}</button>{mode==="wiki"&&<button type="button" className={common.button} onClick={()=>setLeaveTarget("/wiki")}>뒤로</button>}<Link className={common.button} href={listPath} onClick={confirmLeave}>{mode==="wiki"?"내가 쓴 글 목록":"목록으로"}</Link></div></fieldset>
     <p role={state.message&&!state.saved?"alert":"status"} aria-live="polite" className={state.message?styles.result:undefined}>{state.message}{state.saved && <> <Link href={listPath}>목록 확인</Link></>}</p>
-  </form>;
+  </form><LeaveDialog open={leaveTarget!==null} onCancel={()=>setLeaveTarget(null)} onContinue={discardAndGo}/></>;
 }

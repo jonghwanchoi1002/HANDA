@@ -5,11 +5,12 @@ import { PGlite } from "@electric-sql/pglite";
 import { PGLiteSocketServer } from "@electric-sql/pglite-socket";
 import { Pool } from "pg";
 import sharp from "sharp";
+import { readPublishedContent } from "../src/lib/content/repository";
 import { saveManagedContent } from "../src/lib/content/management";
 import { uploadImage, readImage, normalizeImage, type ImageStore, MAX_IMAGE_BYTES } from "../src/lib/content/media";
 
 async function setup(){
- const db=new PGlite();for(const file of ["001_content.sql","002_member_auth.sql","003_member_management.sql","004_content_management.sql","005_member_wiki_media.sql"])await db.exec(await readFile(new URL(`../database/migrations/${file}`,import.meta.url),"utf8"));
+ const db=new PGlite();for(const file of ["001_content.sql","002_member_auth.sql","003_member_management.sql","004_content_management.sql","005_member_wiki_media.sql","006_wiki_publication_review.sql"])await db.exec(await readFile(new URL(`../database/migrations/${file}`,import.meta.url),"utf8"));
  const socket=new PGLiteSocketServer({db,host:"127.0.0.1",port:55448,maxConnections:10});await socket.start();
  const pool=new Pool({connectionString:"postgresql://postgres@127.0.0.1:55448/postgres",max:3});
  for(const [id,role,status] of [["admin","admin","approved"],["writer","member","approved"],["reader","member","approved"],["pending","member","pending"]])await pool.query(`INSERT INTO handa_auth_user(id,name,email,role,approval_status,"emailVerified") VALUES($1,$1,$2,$3,$4,true)`,[id,`${id}@example.test`,role,status]);
@@ -28,13 +29,20 @@ test("approved members can create and edit only their wiki; admin scope and owne
   await saveManagedContent(c.pool,"writer",wiki("owned"),{wikiMember:true});
   assert.equal((await c.pool.query("SELECT author_id FROM handa_content WHERE content_key='owned'")).rows[0].author_id,"writer");
   await assert.rejects(saveManagedContent(c.pool,"reader",{...wiki("owned"),revision:1},{wikiMember:true}),/본인이 작성/);
-  await saveManagedContent(c.pool,"writer",{...wiki("owned"),revision:1,status:"published"},{wikiMember:true});
-  await saveManagedContent(c.pool,"admin",{...wiki("owned"),revision:2});
+  await assert.rejects(saveManagedContent(c.pool,"writer",{...wiki("owned"),revision:1,status:"published"},{wikiMember:true}),/관리자만/);
+  await saveManagedContent(c.pool,"writer",{...wiki("owned"),revision:1,status:"pending"},{wikiMember:true});
+  const published=()=>readPublishedContent((sql,values)=>c.pool.query(sql,values),"wiki");
+  assert.equal((await published()).length,0);
+  await saveManagedContent(c.pool,"admin",{...wiki("owned"),revision:2,status:"published"});
+  assert.equal((await published()).length,1);
+  await assert.rejects(saveManagedContent(c.pool,"writer",{...wiki("owned"),revision:3,status:"published"},{wikiMember:true}),/관리자만/);
+  await saveManagedContent(c.pool,"writer",{...wiki("owned"),revision:3,status:"pending",payload:{...wiki("owned").payload,title:"수정 후 재승인 필요"}},{wikiMember:true});
+  assert.equal((await published()).length,0);
   assert.equal((await c.pool.query("SELECT author_id FROM handa_content WHERE content_key='owned'")).rows[0].author_id,"writer");
   const member={kind:"member",key:"profile",revision:0,status:"draft",consent:false,order:0,payload:{slug:"profile",name:"이름",field:"창업",role:"대표",summary:"소개",introduction:["소개"],interests:[],website:null,photoUrl:null,isExample:false}};
   await assert.rejects(saveManagedContent(c.pool,"writer",member,{wikiMember:true}),/권한/);
   await c.pool.query("UPDATE handa_auth_user SET approval_status='rejected' WHERE id='writer'");
-  await assert.rejects(saveManagedContent(c.pool,"writer",{...wiki("owned"),revision:3},{wikiMember:true}),/권한/);
+  await assert.rejects(saveManagedContent(c.pool,"writer",{...wiki("owned"),revision:4},{wikiMember:true}),/권한/);
  }finally{await c.close();}
 });
 
@@ -46,12 +54,14 @@ test("private wiki images require current membership; drafts and attachments can
   const before=c.reads();await assert.rejects(readImage(c.pool,c.store,id,null));await assert.rejects(readImage(c.pool,c.store,id,c.viewer("reader")));assert.equal(c.reads(),before);
   await saveManagedContent(c.pool,"writer",input,{wikiMember:true});
   await assert.rejects(readImage(c.pool,c.store,id,c.viewer("reader")));
-  await saveManagedContent(c.pool,"writer",{...input,revision:1,status:"published"},{wikiMember:true});
+  await saveManagedContent(c.pool,"writer",{...input,revision:1,status:"pending"},{wikiMember:true});
+  await assert.rejects(readImage(c.pool,c.store,id,c.viewer("reader")));
+  await saveManagedContent(c.pool,"admin",{...input,revision:2,status:"published"});
   assert.ok(await readImage(c.pool,c.store,id,c.viewer("reader")));await assert.rejects(readImage(c.pool,c.store,id,null));
   await assert.rejects(readImage(c.pool,c.store,id,{...c.viewer("reader"),approvalStatus:"rejected"}));
   await assert.rejects(saveManagedContent(c.pool,"writer",{...wiki("other"),payload:{...wiki("other").payload,photos:[photo]}},{wikiMember:true}),/이 글에 첨부/);
   await assert.rejects(uploadImage(c.pool,c.store,"reader",{kind:"wiki",key:"photos",alt:"위조",bytes:c.bytes}),/본인이 작성/);
-  await saveManagedContent(c.pool,"writer",{...input,revision:2},{wikiMember:true});await assert.rejects(readImage(c.pool,c.store,id,c.viewer("reader")));
+  await saveManagedContent(c.pool,"writer",{...input,revision:3},{wikiMember:true});await assert.rejects(readImage(c.pool,c.store,id,c.viewer("reader")));
  }finally{await c.close();}
 });
 

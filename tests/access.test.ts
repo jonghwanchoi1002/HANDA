@@ -14,7 +14,7 @@ import { parseContent } from "../src/lib/content/schema";
 
 test("running Next.js protects wiki HTML/RSC, reads current approval and keeps other pages public", {timeout:60000}, async () => {
   const db=new PGlite();
-  for (const name of ["001_content.sql","002_member_auth.sql","003_member_management.sql","004_content_management.sql","005_member_wiki_media.sql"]) await db.exec(await readFile(new URL(`../database/migrations/${name}`,import.meta.url),"utf8"));
+  for (const name of ["001_content.sql","002_member_auth.sql","003_member_management.sql","004_content_management.sql","005_member_wiki_media.sql","006_wiki_publication_review.sql"]) await db.exec(await readFile(new URL(`../database/migrations/${name}`,import.meta.url),"utf8"));
   const socket=new PGLiteSocketServer({db,host:"127.0.0.1",port:55445,maxConnections:20});await socket.start();
   const databaseURL="postgresql://postgres@127.0.0.1:55445/postgres";
   const pool=new Pool({connectionString:databaseURL,max:1});
@@ -45,7 +45,7 @@ test("running Next.js protects wiki HTML/RSC, reads current approval and keeps o
     }
     await checkDenied("/wiki");await checkDenied("/wiki/private-test");await checkDenied("/admin");await checkDenied("/admin/members");await checkDenied("/admin/content");await checkDenied("/admin/content/wiki/new");await checkDenied("/wiki/new");await checkDenied("/wiki/mine");
     const homepage=await(await fetch(baseURL)).text();for(const text of privateValues)assert.ok(!homepage.includes(text));
-    assert.ok(homepage.includes(">내 계정</a>"));
+    assert.ok(homepage.includes('aria-label="내 계정"'));
     assert.ok(!homepage.includes("계정 확인 중"));
     await pool.query("UPDATE handa_content SET payload=jsonb_set(payload,'{heroTitle}',to_jsonb($1::text)) WHERE kind='home'",["LIVE_DB_HOME_TITLE_2026"]);
     assert.ok((await(await fetch(baseURL)).text()).includes("LIVE_DB_HOME_TITLE_2026"),"homepage should read current database content after a sample-mode build");
@@ -60,7 +60,7 @@ test("running Next.js protects wiki HTML/RSC, reads current approval and keeps o
     await checkDenied("/wiki/private-test",cookie);await checkDenied("/admin",cookie);await checkDenied("/admin/content",cookie);await checkDenied("/admin/content/wiki/private-test",cookie);
     for (const path of ["/", "/members", "/stories", "/testimonials"]) {
       const body = await (await fetch(baseURL + path, { headers: { cookie } })).text();
-      assert.ok(body.includes(">내 계정</a>"), `${path} should show account navigation after login`);
+      assert.ok(body.includes('aria-label="내 계정"'), `${path} should show account navigation after login`);
       assert.ok(!body.includes(">로그인 / 회원가입</a>"));
       assert.ok(!body.includes(">회원 관리</a>"));
     }
@@ -71,6 +71,7 @@ test("running Next.js protects wiki HTML/RSC, reads current approval and keeps o
     await checkDenied("/admin/content",cookie);
     const newWiki=await fetch(baseURL+"/wiki/new",{headers:{cookie}});assert.ok((await newWiki.text()).includes("새 글 작성"));
     await checkDenied("/wiki/private-test/edit",cookie);
+    const ownPosts=await fetch(baseURL+"/account/posts",{headers:{cookie}});assert.ok((await ownPosts.text()).includes("내가 쓴 글"));
     const upload=await fetch(baseURL+"/api/images",{method:"POST",headers:{origin:"https://other.example"}});assert.equal(upload.status,403);
     const guestUpload=await fetch(baseURL+"/api/images",{method:"POST",headers:{origin:baseURL}});assert.equal(guestUpload.status,403);
     const image=await fetch(baseURL+"/api/images/00000000-0000-4000-8000-000000000000");assert.equal(image.status,404);assert.ok(image.headers.get("cache-control")?.includes("no-store"));
@@ -86,8 +87,8 @@ test("running Next.js protects wiki HTML/RSC, reads current approval and keeps o
     assert.ok(!adminHome.includes(">콘텐츠 관리</a>"));
     const account=await(await fetch(baseURL+"/account",{headers:{cookie}})).text();
     assert.ok(account.includes('aria-label="주 메뉴"'));
-    assert.ok(account.includes("회원 관리 ↗"));
-    assert.ok(account.includes("콘텐츠 관리 ↗"));
+    assert.ok(account.includes("내가 쓴 글 ↗"));
+    assert.ok(!account.includes("홈페이지로"));
     const editor=await fetch(baseURL+"/admin/content/wiki/private-test",{headers:{cookie}});assert.ok((await editor.text()).includes("PRIVATE_TITLE_93847"));
     const admin=await fetch(baseURL+"/admin/members",{headers:{cookie}});const adminBody=await admin.text();assert.ok(adminBody.includes("회원 관리"));
     assert.ok(adminBody.includes('>비즈니스 위키</a>'));

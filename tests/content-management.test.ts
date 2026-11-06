@@ -10,7 +10,7 @@ import { getInitialContent } from "../src/lib/content/initial";
 
 async function setup() {
   const db=new PGlite();
-  for(const name of ["001_content.sql","002_member_auth.sql","003_member_management.sql","004_content_management.sql","005_member_wiki_media.sql"]) await db.exec(await readFile(new URL(`../database/migrations/${name}`,import.meta.url),"utf8"));
+  for(const name of ["001_content.sql","002_member_auth.sql","003_member_management.sql","004_content_management.sql","005_member_wiki_media.sql","006_wiki_publication_review.sql"]) await db.exec(await readFile(new URL(`../database/migrations/${name}`,import.meta.url),"utf8"));
   const server=new PGLiteSocketServer({db,port:55447,host:"127.0.0.1",maxConnections:10});await server.start();
   const pool=new Pool({connectionString:"postgresql://postgres@127.0.0.1:55447/postgres",max:3});
   for(const [id,role,status,verified] of [["admin","admin","approved",true],["member","member","approved",true],["pending","admin","pending",true],["unverified","admin","approved",false]]) await pool.query(`INSERT INTO handa_auth_user(id,name,email,role,approval_status,"emailVerified") VALUES($1,$1,$2,$3,$4,$5)`,[id,`${id}@example.test`,role,status,verified]);

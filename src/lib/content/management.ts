@@ -1,3 +1,4 @@
+import type { ContentStatus } from "./status";
 import { z } from "zod";
 import type { Pool } from "pg";
 import { imageURLs } from "./media-access";
@@ -5,18 +6,19 @@ import { canReadWiki, canManageMembers } from "../auth/permissions";
 import { parseContent, type ContentKind } from "./schema";
 
 export const kindSchema = z.enum(["home", "wiki", "member", "story", "testimonial"]);
-export const labels: Record<ContentKind, string> = { home: "홈 소개", wiki: "비즈니스 위키", member: "멤버 소개", story: "모임 후기", testimonial: "참가자 이야기" };
+export const labels: Record<ContentKind, string> = { home: "홈 소개", wiki: "비즈니스 위키", member: "멤버 소개", story: "정기모임 후기", testimonial: "Testimonial" };
 export const saveSchema = z.object({
   kind: kindSchema, key: z.string().max(100).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
-  revision: z.number().int().min(0), status: z.enum(["draft", "published"]),
+  revision: z.number().int().min(0), status: z.enum(["draft", "pending", "published"]),
   consent: z.boolean(), order: z.number().int().min(-100000).max(100000), payload: z.unknown(),
 });
-export type ManagedContent = { kind: ContentKind; key: string; revision: number; status: "draft" | "published"; consent: boolean; order: number; payload: Record<string, unknown> };
+export type ManagedContent = { kind: ContentKind; key: string; revision: number; status: ContentStatus; consent: boolean; order: number; payload: Record<string, unknown> };
 export class ContentManagementError extends Error {}
 
 export async function saveManagedContent(database: Pool, actorId: string, raw: unknown, options: { wikiMember?: boolean } = {}) {
   const input = saveSchema.parse(raw);
   const payload = parseContent(input.kind, input.payload);
+  if(input.status==="pending" && input.kind!=="wiki")throw new ContentManagementError("공개 대기는 위키 글에서만 사용할 수 있습니다.");
   const example = "isExample" in payload && payload.isExample;
   if (input.kind === "home" && (input.key !== "homepage" || input.status !== "published")) throw new ContentManagementError("홈 소개는 공개 상태로만 저장할 수 있습니다.");
   if (input.kind !== "home" && ("slug" in payload ? payload.slug : "id" in payload ? payload.id : undefined) !== input.key) throw new ContentManagementError("글 주소가 일치하지 않습니다.");
@@ -31,6 +33,7 @@ export async function saveManagedContent(database: Pool, actorId: string, raw: u
     const user=actor.rows[0] ?? null;
     const admin=canManageMembers(user);
     if (!admin && !(options.wikiMember && input.kind==="wiki" && canReadWiki(user))) throw new ContentManagementError("글을 작성할 권한이 없습니다.");
+    if(!admin && input.status==="published")throw new ContentManagementError("글 공개는 관리자만 가능합니다. 작성 완료 후 공개 대기로 저장해 주세요.");
     const existing = await client.query("SELECT payload,status,publication_consent,sort_order,revision,author_id FROM handa_content WHERE kind=$1 AND content_key=$2 FOR UPDATE", [input.kind,input.key]);
     const previous = existing.rows[0];
     if (!admin && previous?.author_id !== actorId && previous) throw new ContentManagementError("본인이 작성한 위키 글만 수정할 수 있습니다.");
