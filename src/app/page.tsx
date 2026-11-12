@@ -24,7 +24,7 @@ export default async function Home() {
           <p className={styles.heroEyebrow}>Berlin Founders Community</p>
           <h1 id="hero-title"><ContentText content={home} field="heroTitle" formatted={false} inline/><br/><ContentText content={home} field="heroSubtitle" formatted={false} inline/> <ContentText content={home} field="heroHighlight" formatted={false} inline/></h1>
           <p className={styles.heroDescription}><ContentText content={home} field="heroDescription" formatted={false} inline/></p>
-          <div className={styles.heroActions}><a className={styles.button} href="#about">HANDA 알아보기</a><Link className={`${styles.button} ${styles.ghost}`} href="/wiki">비즈니스 위키</Link></div>
+          <div className={styles.heroActions}><a className={styles.button} href="#about">HANDA 알아보기</a><Link className={styles.button} href="/wiki">비즈니스 위키</Link></div>
         </div>
       </section>
       <section id="about" className={`${styles.section} ${styles.about}`} aria-labelledby="about-title">

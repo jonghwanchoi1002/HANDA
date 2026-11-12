@@ -10,10 +10,8 @@
 .hero h1 { max-width: 880px; font-size: clamp(44px, 5.95vw, 76px); line-height: 1.32; letter-spacing: -.03em; font-weight: 500; margin: 0; word-break: keep-all; }
 .heroDescription { max-width: 480px; font-size: 18px; line-height: 1.85; margin: 32px 0 44px; }
 .heroActions { display: flex; gap: 14px; flex-wrap: wrap; }
-.button { display: inline-flex; min-height: 52px; justify-content: center; align-items: center; background: var(--ink); color: var(--cream); border: 1px solid var(--inverse-border); border-radius: 2px; font-size: 15px; line-height: 1.6; padding: 15px 34px; }
-.button:hover { background: var(--terracotta-deep); }
-.ghost { background: color-mix(in srgb, var(--ink) 36%, transparent); border-color: var(--cream); }
-.ghost:hover { background: var(--ink); }
+.button { display: inline-flex; min-height: 52px; justify-content: center; align-items: center; background: transparent; color: var(--cream); border: 1px solid var(--cream); border-radius: 2px; font-size: 15px; line-height: 1.6; padding: 15px 34px; }
+.button:hover, .button:focus-visible { background: var(--terracotta-deep); }
 .section { padding-block: 120px; }
 .label { font-size: 17px; line-height: 1.7; font-weight: 500; letter-spacing: .02em; color: var(--terracotta-deep); margin: 0 0 24px; }
 .section h2 { max-width: 760px; font-size: clamp(28px, 3vw, 38px); font-weight: 500; line-height: 1.4; letter-spacing: -.03em; margin: 0; word-break: keep-all; }
