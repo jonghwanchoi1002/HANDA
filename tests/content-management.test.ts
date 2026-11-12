@@ -56,7 +56,7 @@ test("all content types round-trip including images; testimonials require consen
       const stored=(await c.pool.query("SELECT payload FROM handa_content WHERE kind=$1 AND content_key=$2",[entry.kind,entry.key])).rows[0].payload;
       if(entry.kind==="story")assert.deepEqual(stored.cover,(entry.payload as {cover:unknown}).cover);
     }
-    const testimonial={kind:"testimonial",key:"real-person",revision:0,status:"published",consent:false,order:0,payload:{id:"real-person",name:"참가자",introduction:"창업자",quote:"좋아요",topic:"배움",photo:null,isExample:false}};
+    const testimonial={kind:"testimonial",key:"real-person",revision:0,status:"published",consent:false,order:0,payload:{id:"real-person",name:"참가자",introduction:"창업자",quote:"좋아요",sections:[{title:"",paragraphs:["함께한 경험을 나눕니다."]}],topic:"배움",photo:null,isExample:false}};
     await assert.rejects(saveManagedContent(c.pool,"admin",testimonial),/공개 동의/);
     await saveManagedContent(c.pool,"admin",{...testimonial,consent:true});
     assert.equal((await readPublishedContent(c.query,"testimonial")).length,1);
@@ -124,5 +124,44 @@ test("only admins edit fixed introduction pages; rich copy persists and seed nev
   await c.pool.query("INSERT INTO handa_content(kind,content_key,payload,status) VALUES('page','about',$1,'published') ON CONFLICT(kind,content_key) DO NOTHING",[entry.payload]);
   assert.equal((await readPublishedContent(c.query,"page","about"))[0].heading,"관리자 수정");
   await assert.rejects(saveManagedContent(c.pool,"admin",{...entry,payload,revision:1}),/다른 관리자/);
+ }finally{await c.close();}
+});
+
+test("testimonial sections are mandatory on save, preserve order and formatting, and keep admin/consent checks",async()=>{
+ const c=await setup();try{
+  const initial=getInitialContent().find(e=>e.kind==="testimonial")!;
+  const base=initial.payload as Record<string,unknown>;
+  const doc={type:"doc",content:[{type:"paragraph",content:[{type:"text",text:"경험과 인사이트",marks:[{type:"bold"}]}]}]};
+  const payload={...base,id:"section-review",isExample:false,sections:[{number:"03",title:"도움이 된 부분",paragraphs:["경험과 인사이트"],highlight:true,bodyRichText:doc},{number:"",title:"",paragraphs:["하나의 본문으로도 작성합니다."],highlight:false}]};
+  const entry={kind:"testimonial",key:"section-review",revision:0,status:"published",consent:true,order:0,payload};
+  for(const sections of [undefined,[],[{title:"질문만 있음",paragraphs:[]}],[{title:"",paragraphs:["  "]}]])await assert.rejects(saveManagedContent(c.pool,"admin",{...entry,payload:{...payload,sections}}));
+  await assert.rejects(saveManagedContent(c.pool,"admin",{...entry,payload:{...payload,sections:undefined,body:"예전 본문으로 필수 검증을 우회할 수 없음"}}));
+  await assert.rejects(saveManagedContent(c.pool,"admin",{...entry,payload:{...payload,joinUrl:"javascript:alert(1)"}}));
+  await assert.rejects(saveManagedContent(c.pool,"member",entry),/권한/);
+  await assert.rejects(saveManagedContent(c.pool,"admin",{...entry,consent:false}),/공개 동의/);
+  await saveManagedContent(c.pool,"admin",entry);
+  const saved=(await readPublishedContent(c.query,"testimonial","section-review"))[0];
+  assert.deepEqual(saved.sections,payload.sections);
+  assert.equal(saved.joinUrl,"https://forms.gle/SXXxb8321efoPFta8");
+  await saveManagedContent(c.pool,"admin",{...entry,revision:1,payload:{...payload,sections:[...payload.sections].reverse()}});
+  assert.equal((await readPublishedContent(c.query,"testimonial","section-review"))[0].sections?.[0].number,"");
+ }finally{await c.close();}
+});
+
+test("testimonial migration preserves legacy bodies and rich text, fills only empty examples, and is repeatable",async()=>{
+ const c=await setup();try{
+  const initial=getInitialContent().find(e=>e.kind==="testimonial")!.payload as Record<string,unknown>;
+  const legacy={...initial,sections:undefined,body:"첫 문단\n\n둘째 문단",richText:{body:{type:"doc",content:[{type:"paragraph",content:[{type:"text",text:"첫 문단",marks:[{type:"bold"}]}]},{type:"paragraph"},{type:"paragraph",content:[{type:"text",text:"둘째 문단"}]}]}}};
+  for(const [key,payload,example] of [["old-body",legacy,false],["empty-example",{...initial,sections:undefined},true],["old-empty-real",{...initial,sections:undefined},false],["already-edited",initial,true]] as const){
+    await c.pool.query("INSERT INTO handa_content(kind,content_key,payload,status,is_example,publication_consent) VALUES('testimonial',$1,$2,'published',$3,true)",[key,{...payload,id:key,isExample:example},example]);
+  }
+  const sql=await readFile(new URL("../database/migrations/012_testimonial_sections.sql",import.meta.url),"utf8");await c.pool.query(sql);
+  const body=(await readPublishedContent(c.query,"testimonial","old-body"))[0];
+  assert.deepEqual(body.sections?.[0].paragraphs,["첫 문단","둘째 문단"]);assert.deepEqual(body.sections?.[0].bodyRichText,legacy.richText.body);
+  assert.ok((await readPublishedContent(c.query,"testimonial","empty-example"))[0].sections?.[0].paragraphs.length);
+  assert.equal((await readPublishedContent(c.query,"testimonial","old-empty-real"))[0].sections,undefined);
+  assert.deepEqual((await readPublishedContent(c.query,"testimonial","already-edited"))[0].sections,initial.sections);
+  const before=(await c.pool.query("SELECT content_key,payload,revision FROM handa_content WHERE kind='testimonial' ORDER BY content_key")).rows;
+  await c.pool.query(sql);assert.deepEqual((await c.pool.query("SELECT content_key,payload,revision FROM handa_content WHERE kind='testimonial' ORDER BY content_key")).rows,before);
  }finally{await c.close();}
 });

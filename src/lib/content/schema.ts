@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { richTextDocumentSchema,richTextMapSchema,assertRichTextMatches } from "./rich-text";
+import { testimonialClosingDefaults } from "./testimonial-defaults";
 import { homeAboutDefaults } from "./home-defaults";
 
 const text = z.string().trim().min(1);
@@ -13,11 +14,20 @@ const block = z.discriminatedUnion("type", [
   z.object({ id: text, type: z.literal("heading"), text, richText:richTextDocumentSchema.optional() }),
   z.object({ id: text, type: z.literal("image"), image: storyImage }),
 ]);
+export const testimonialSectionsSchema = z.array(z.object({
+  number:z.string().trim().max(20).default(""),
+  title:z.string().trim().max(1000).default(""),
+  paragraphs:z.array(text.max(30000)).min(1),
+  highlight:z.boolean().default(false),
+  titleRichText:richTextDocumentSchema.optional(),bodyRichText:richTextDocumentSchema.optional(),
+})).min(1).max(30);
 export const contentSchemas = {
   wiki: z.object({ richText:richTextMapSchema.optional(), photos: z.array(photo).max(10).optional(), slug, title: text, category: text, summary: text, isExample: z.boolean(), sections: z.array(z.object({ title: text, paragraphs: z.array(text).min(1), titleRichText:richTextDocumentSchema.optional(), bodyRichText:richTextDocumentSchema.optional() })).min(1) }),
   member: z.object({ richText:richTextMapSchema.optional(), slug, name: text, field: text, role: text, summary: text, introduction: z.array(text).min(1), interests: z.array(text), website: webUrl.nullable(), photoUrl: imageUrl.nullable(), isExample: z.boolean() }),
   story: z.object({ richText:richTextMapSchema.optional(), slug, title: text, summary: text, eventDate: z.iso.date(), location: text, cover: storyImage.nullable(), blocks: z.array(block).min(1).refine((blocks) => new Set(blocks.map((item) => item.id)).size === blocks.length, "Block IDs must be unique"), isExample: z.boolean() }),
-  testimonial: z.object({ richText:richTextMapSchema.optional(), id: slug, name: text, introduction: text, quote: text, body: z.string().trim().max(30000).optional(), topic: text, photo: photo.nullable(), isExample: z.boolean() }),
+  testimonial: z.object({ richText:richTextMapSchema.optional(), id: slug, name: text, introduction: text, quote: text, body: z.string().trim().max(30000).optional(), sections:testimonialSectionsSchema.optional(),
+    closingTitle:text.default(testimonialClosingDefaults.closingTitle),closingBody:text.default(testimonialClosingDefaults.closingBody),
+    joinLabel:text.default(testimonialClosingDefaults.joinLabel),joinUrl:webUrl.default(testimonialClosingDefaults.joinUrl), topic: text, photo: photo.nullable(), isExample: z.boolean() }),
   page: z.object({
     slug:z.enum(["about","guide","join"]),title:text,heading:text,body:text,isExample:z.literal(false),
     secondaryHeading:z.string().trim(),secondaryBody:z.string().trim(),
@@ -44,7 +54,7 @@ export function parseContent<K extends ContentKind>(kind: K, value: unknown): Co
     if(typeof plain!=="string"&&!(Array.isArray(plain)&&plain.every(v=>typeof v==="string")))throw new z.ZodError([{code:"custom",path:["richText",key],message:"서식을 적용할 수 없는 항목입니다."}]);
     assertRichTextMatches(doc,plain as string|string[],["richText",key]);
   }
-  if("sections" in payload)payload.sections.forEach((section,index)=>{
+  if("sections" in payload)payload.sections?.forEach((section,index)=>{
     assertRichTextMatches(section.titleRichText,section.title,["sections",index,"titleRichText"]);
     assertRichTextMatches(section.bodyRichText,section.paragraphs,["sections",index,"bodyRichText"]);
   });

@@ -3,7 +3,7 @@ import { z } from "zod";
 import type { Pool } from "pg";
 import { imageURLs } from "./media-access";
 import { canReadWiki, canManageMembers } from "../auth/permissions";
-import { parseContent, type ContentKind } from "./schema";
+import { parseContent, testimonialSectionsSchema, type ContentKind } from "./schema";
 
 export const kindSchema = z.enum(["home", "page", "member", "wiki", "story", "testimonial"]);
 export const labels: Record<ContentKind, string> = { home: "홈", page:"HANDA 소개", wiki: "비즈니스 위키", member: "멤버 소개", story: "정기모임 후기", testimonial: "멤버 후기" };
@@ -18,6 +18,7 @@ export class ContentManagementError extends Error {}
 export async function saveManagedContent(database: Pool, actorId: string, raw: unknown, options: { wikiMember?: boolean } = {}) {
   const input = saveSchema.parse(raw);
   const payload = parseContent(input.kind, input.payload);
+  if(input.kind==="testimonial")testimonialSectionsSchema.parse((payload as {sections?:unknown}).sections);
   if(input.status==="pending" && input.kind!=="wiki")throw new ContentManagementError("공개 대기는 위키 글에서만 사용할 수 있습니다.");
   const example = "isExample" in payload && payload.isExample;
   if (input.kind === "home" && (input.key !== "homepage" || input.status !== "published")) throw new ContentManagementError("홈 소개는 공개 상태로만 저장할 수 있습니다.");

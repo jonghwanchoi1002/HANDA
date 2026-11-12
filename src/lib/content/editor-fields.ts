@@ -1,3 +1,4 @@
+import { testimonialClosingDefaults } from "./testimonial-defaults";
 import type { ContentKind } from "./schema";
 export type Field = { key: string; label: string; type?: "text" | "long" | "lines" | "date" | "url"; optional?: boolean; rich?:boolean };
 export const editorFields: Record<ContentKind, Field[]> = {
@@ -9,16 +10,16 @@ export const editorFields: Record<ContentKind, Field[]> = {
   wiki: [{key:"title",label:"제목"},{key:"category",label:"분류"},{key:"summary",label:"요약",type:"long"}],
   member: [{key:"name",label:"이름"},{key:"field",label:"사업 분야"},{key:"role",label:"직함"},{key:"summary",label:"한 줄 소개",type:"long"},{key:"introduction",label:"소개 본문",type:"lines"},{key:"interests",label:"관심 분야",type:"lines",optional:true},{key:"website",label:"웹사이트",type:"url",optional:true}],
   story: [{key:"title",label:"제목"},{key:"summary",label:"요약",type:"long"},{key:"eventDate",label:"모임 날짜",type:"date"},{key:"location",label:"장소"}],
-  testimonial: [{key:"name",label:"이름"},{key:"introduction",label:"참가자 소개"},{key:"quote",label:"한 줄 후기",type:"long"},{key:"body",label:"후기 본문",type:"long",optional:true},{key:"topic",label:"주제"}],
+  testimonial: [{key:"name",label:"이름"},{key:"introduction",label:"참가자 소개"},{key:"quote",label:"한 줄 후기",type:"long"},{key:"topic",label:"주제"},{key:"closingTitle",label:"마무리 안내 제목"},{key:"closingBody",label:"마무리 안내 내용",type:"long"},{key:"joinLabel",label:"참여 버튼 문구"},{key:"joinUrl",label:"참여 신청 링크",type:"url"}],
 };
 for(const fields of Object.values(editorFields))for(const field of fields){
-  field.rich=field.type!=="url"&&field.type!=="date"&&!["category","location","interests","ctaLabel"].includes(field.key);
+  field.rich=field.type!=="url"&&field.type!=="date"&&!["category","location","interests","ctaLabel","joinLabel"].includes(field.key);
 }
 export function emptyPayload(kind: ContentKind, key: string): Record<string, unknown> {
   const payload: Record<string, unknown> = {isExample:false};
   for (const field of editorFields[kind]) payload[field.key] = field.type === "lines" ? [] : "";
   if (kind === "home") delete payload.isExample;
-  else if (kind === "testimonial") Object.assign(payload,{id:key,photo:null});
+  else if (kind === "testimonial") Object.assign(payload,{id:key,photo:null,sections:[{number:"",title:"",paragraphs:[],highlight:false}],...testimonialClosingDefaults});
   else payload.slug=key;
   if (kind === "wiki") payload.sections=[{title:"",paragraphs:[]}];
   if (kind === "member") Object.assign(payload,{website:null,photoUrl:null});

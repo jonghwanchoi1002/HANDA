@@ -68,7 +68,7 @@ test("private wiki images require current membership; drafts and attachments can
 test("public images follow publication and consent; invalid uploads and quotas fail before storage",async()=>{
  const c=await setup();try{
   const photo=await uploadImage(c.pool,c.store,"admin",{kind:"testimonial",key:"public",alt:"참가자 사진",bytes:c.bytes});const id=photo.url.split("/").at(-1)!;
-  const input={kind:"testimonial",key:"public",revision:0,status:"published",consent:true,order:0,payload:{id:"public",name:"참가자",introduction:"소개",quote:"내용",topic:"배움",photo,isExample:false}};
+  const input={kind:"testimonial",key:"public",revision:0,status:"published",consent:true,order:0,payload:{id:"public",name:"참가자",introduction:"소개",quote:"내용",sections:[{title:"",paragraphs:["함께한 경험입니다."]}],topic:"배움",photo,isExample:false}};
   await saveManagedContent(c.pool,"admin",input);assert.ok(await readImage(c.pool,c.store,id,null));
   await saveManagedContent(c.pool,"admin",{...input,revision:1,status:"draft",consent:false});await assert.rejects(readImage(c.pool,c.store,id,null));
   await assert.rejects(uploadImage(c.pool,c.store,"writer",{kind:"story",key:"forbidden",alt:"사진",bytes:c.bytes}),/권한/);
