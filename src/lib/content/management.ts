@@ -5,8 +5,8 @@ import { imageURLs } from "./media-access";
 import { canReadWiki, canManageMembers } from "../auth/permissions";
 import { parseContent, type ContentKind } from "./schema";
 
-export const kindSchema = z.enum(["home", "page", "wiki", "member", "story", "testimonial"]);
-export const labels: Record<ContentKind, string> = { home: "홈 소개", page:"HANDA 소개", wiki: "비즈니스 위키", member: "멤버 소개", story: "정기모임 후기", testimonial: "멤버 후기" };
+export const kindSchema = z.enum(["home", "page", "member", "wiki", "story", "testimonial"]);
+export const labels: Record<ContentKind, string> = { home: "홈", page:"HANDA 소개", wiki: "비즈니스 위키", member: "멤버 소개", story: "정기모임 후기", testimonial: "멤버 후기" };
 export const saveSchema = z.object({
   kind: kindSchema, key: z.string().max(100).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
   revision: z.number().int().min(0), status: z.enum(["draft", "pending", "published"]),
