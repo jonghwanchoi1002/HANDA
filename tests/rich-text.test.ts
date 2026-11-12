@@ -69,3 +69,13 @@ test("legacy testimonial single bodies remain readable without affecting the sum
   assert.equal(parseContent("testimonial",{...legacy,body:""}).body,"");
   assert.throws(()=>parseContent("testimonial",{...legacy,body:"다른 본문",richText:{body:formatted}}),/일치/);
 });
+
+test("testimonial closing fields can be cleared without restoring defaults and links remain safe",()=>{
+  const initial=getInitialContent().find(e=>e.kind==="testimonial")!.payload;
+  const cleared={closingTitle:"",closingBody:"",joinLabel:"",joinUrl:""};
+  const parsed=parseContent("testimonial",{...initial as object,...cleared,richText:{closingTitle:documentFromText(""),closingBody:documentFromText("")}});
+  for(const key of Object.keys(cleared) as (keyof typeof cleared)[])assert.equal(parsed[key],"");
+  assert.equal(parseContent("testimonial",initial).joinLabel,"HANDA 합류하기");
+  assert.equal(parseContent("testimonial",{...initial as object,joinLabel:"",joinUrl:"https://example.test/join"}).joinLabel,"");
+  assert.throws(()=>parseContent("testimonial",{...initial as object,joinUrl:"javascript:alert(1)"}));
+});

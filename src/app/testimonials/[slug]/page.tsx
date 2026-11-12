@@ -16,6 +16,8 @@ export default async function TestimonialPage({ params }: Props) {
   const item = await getPublishedTestimonial(slug);
   if (!item) notFound();
   const sections=getTestimonialSections(item);
+  const showJoinButton=Boolean(item.joinLabel&&item.joinUrl);
+  const showClosing=Boolean(item.closingTitle||item.closingBody||showJoinButton);
   return <main className={`${styles.main} ${styles.detail}`}>
     <Link className={styles.back} href="/testimonials">← 멤버 후기 목록</Link>
     <article className={styles.reviewArticle}>
@@ -35,11 +37,11 @@ export default async function TestimonialPage({ params }: Props) {
           <div className={section.highlight?styles.highlight:styles.sectionBody}><RichText text={section.paragraphs.join("\n")} document={section.bodyRichText}/></div>
         </section>) : <p>자세한 후기를 준비하고 있습니다.</p>}
       </div>
-      <aside className={styles.joinBox} aria-label="HANDA 참여 안내">
-        <h2><ContentText content={item} field="closingTitle" inline/></h2>
-        <ContentText content={item} field="closingBody"/>
-        <a className={styles.joinButton} href={item.joinUrl} target="_blank" rel="noopener noreferrer">{item.joinLabel}</a>
-      </aside>
+      {showClosing&&<aside className={styles.joinBox} aria-label="HANDA 참여 안내">
+        {item.closingTitle&&<h2><ContentText content={item} field="closingTitle" inline/></h2>}
+        {item.closingBody&&<ContentText content={item} field="closingBody"/>}
+        {showJoinButton&&<a className={styles.joinButton} href={item.joinUrl} target="_blank" rel="noopener noreferrer">{item.joinLabel}</a>}
+      </aside>}
     </article>
     <Link className={styles.back} href="/testimonials">다른 멤버 후기 보기 →</Link>
   </main>;

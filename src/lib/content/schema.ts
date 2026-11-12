@@ -26,8 +26,8 @@ export const contentSchemas = {
   member: z.object({ richText:richTextMapSchema.optional(), slug, name: text, field: text, role: text, summary: text, introduction: z.array(text).min(1), interests: z.array(text), website: webUrl.nullable(), photoUrl: imageUrl.nullable(), isExample: z.boolean() }),
   story: z.object({ richText:richTextMapSchema.optional(), slug, title: text, summary: text, eventDate: z.iso.date(), location: text, cover: storyImage.nullable(), blocks: z.array(block).min(1).refine((blocks) => new Set(blocks.map((item) => item.id)).size === blocks.length, "Block IDs must be unique"), isExample: z.boolean() }),
   testimonial: z.object({ richText:richTextMapSchema.optional(), id: slug, name: text, introduction: text, quote: text, body: z.string().trim().max(30000).optional(), sections:testimonialSectionsSchema.optional(),
-    closingTitle:text.default(testimonialClosingDefaults.closingTitle),closingBody:text.default(testimonialClosingDefaults.closingBody),
-    joinLabel:text.default(testimonialClosingDefaults.joinLabel),joinUrl:webUrl.default(testimonialClosingDefaults.joinUrl), topic: text, photo: photo.nullable(), isExample: z.boolean() }),
+    closingTitle:z.string().trim().default(testimonialClosingDefaults.closingTitle),closingBody:z.string().trim().default(testimonialClosingDefaults.closingBody),
+    joinLabel:z.string().trim().default(testimonialClosingDefaults.joinLabel),joinUrl:z.string().trim().pipe(z.union([z.literal(""),webUrl])).default(testimonialClosingDefaults.joinUrl), topic: text, photo: photo.nullable(), isExample: z.boolean() }),
   page: z.object({
     slug:z.enum(["about","guide","join"]),title:text,heading:text,body:text,isExample:z.literal(false),
     secondaryHeading:z.string().trim(),secondaryBody:z.string().trim(),

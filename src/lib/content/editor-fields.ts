@@ -10,7 +10,7 @@ export const editorFields: Record<ContentKind, Field[]> = {
   wiki: [{key:"title",label:"제목"},{key:"category",label:"분류"},{key:"summary",label:"요약",type:"long"}],
   member: [{key:"name",label:"이름"},{key:"field",label:"사업 분야"},{key:"role",label:"직함"},{key:"summary",label:"한 줄 소개",type:"long"},{key:"introduction",label:"소개 본문",type:"lines"},{key:"interests",label:"관심 분야",type:"lines",optional:true},{key:"website",label:"웹사이트",type:"url",optional:true}],
   story: [{key:"title",label:"제목"},{key:"summary",label:"요약",type:"long"},{key:"eventDate",label:"모임 날짜",type:"date"},{key:"location",label:"장소"}],
-  testimonial: [{key:"name",label:"이름"},{key:"introduction",label:"참가자 소개"},{key:"quote",label:"한 줄 후기",type:"long"},{key:"topic",label:"주제"},{key:"closingTitle",label:"마무리 안내 제목"},{key:"closingBody",label:"마무리 안내 내용",type:"long"},{key:"joinLabel",label:"참여 버튼 문구"},{key:"joinUrl",label:"참여 신청 링크",type:"url"}],
+  testimonial: [{key:"name",label:"이름"},{key:"introduction",label:"참가자 소개"},{key:"quote",label:"한 줄 후기",type:"long"},{key:"topic",label:"주제"},{key:"closingTitle",label:"마무리 안내 제목",optional:true},{key:"closingBody",label:"마무리 안내 내용",type:"long",optional:true},{key:"joinLabel",label:"참여 버튼 문구",optional:true},{key:"joinUrl",label:"참여 신청 링크",type:"url",optional:true}],
 };
 for(const fields of Object.values(editorFields))for(const field of fields){
   field.rich=field.type!=="url"&&field.type!=="date"&&!["category","location","interests","ctaLabel","joinLabel"].includes(field.key);
