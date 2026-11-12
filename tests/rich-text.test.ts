@@ -36,13 +36,11 @@ test("formatting cannot conceal mismatched text in field maps, wiki sections or 
   assert.throws(()=>parseContent("story",{...story,blocks:[{id:"one",type:"paragraph",text:"원래 본문",richText:formatted}]}),/일치/);
   assert.throws(()=>parseContent("wiki",{...wiki,richText:{doesNotExist:formatted}}));
 });
-test("legacy plain text still validates and initial HANDA content includes the supplied copy and safe form link",()=>{
+test("legacy plain text still validates and local page data stays a short placeholder with a safe form link",()=>{
   const about=parseContent("page",getInitialContent().find(e=>e.kind==="page"&&e.key==="about")!.payload);
-  assert.ok(about.body.includes("2025년 12월 작은 모임에서 시작했습니다."));
-  assert.ok(about.body.includes("매달 둘째 주 일요일"));
-  assert.ok(about.body.includes("법인 설립 절차와 비용부터 팝업스토어 기획 및 성사 과정까지,"));
+  assert.equal(about.body,"커뮤니티 소개 내용을 준비하고 있습니다.");
+  assert.equal(about.richText,undefined);
   assert.equal(about.ctaUrl,"https://forms.gle/SXXxb8321efoPFta8");
-  assert.deepEqual(richTextPlain(about.richText!.body),about.body);
   const wiki=getInitialContent().find(e=>e.kind==="wiki")!.payload as Record<string,unknown>;
   assert.equal(parseContent("wiki",wiki).richText,undefined);
 });

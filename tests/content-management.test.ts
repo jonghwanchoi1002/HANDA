@@ -121,7 +121,7 @@ test("only admins edit fixed introduction pages; rich copy persists and seed nev
   await assert.rejects(saveManagedContent(c.pool,"admin",{...entry,payload,revision:1,status:"draft"}),/공개/);
   await saveManagedContent(c.pool,"admin",{...entry,payload,revision:1});
   assert.equal((await readPublishedContent(c.query,"page","about"))[0].body,"새 소개 본문");
-  await c.pool.query("INSERT INTO handa_content(kind,content_key,payload,status) VALUES('page','about',$1,'published') ON CONFLICT(kind,content_key) DO NOTHING",[initial]);
+  await c.pool.query("INSERT INTO handa_content(kind,content_key,payload,status) VALUES('page','about',$1,'published') ON CONFLICT(kind,content_key) DO NOTHING",[entry.payload]);
   assert.equal((await readPublishedContent(c.query,"page","about"))[0].heading,"관리자 수정");
   await assert.rejects(saveManagedContent(c.pool,"admin",{...entry,payload,revision:1}),/다른 관리자/);
  }finally{await c.close();}
