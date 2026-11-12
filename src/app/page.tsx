@@ -52,13 +52,13 @@ export default async function Home() {
       </section>
       <div className={`${styles.wrap} ${styles.featureGrid}`}>
         <Link id="wiki" href="/wiki" className={`${styles.featureCard} ${styles.wikiCard}`} aria-labelledby="wiki-title">
-          <p className={styles.label}>03 — Business Wiki</p><h2 id="wiki-title">경험이 쌓이면, 길이 됩니다.</h2>
-          <p className={styles.cardDescription}>승인된 회원을 위한 창업·운영 노하우 위키.</p><span className={styles.cardLink}>위키 전체 보기 →</span>
+          <div className={styles.featureContent}><p className={styles.label}>03 — Business Wiki</p><h2 id="wiki-title">경험이 쌓이면, 길이 됩니다.</h2>
+          <p className={styles.cardDescription}>승인된 회원을 위한 창업·운영 노하우 위키.</p><span className={styles.cardLink}>위키 전체 보기 →</span></div>
         </Link>
         <Link id="stories" href="/stories" className={`${styles.featureCard} ${styles.journalCard}`} aria-labelledby="stories-title">
           {homeMainPhoto && <Image className={styles.journalPhoto} src={homeMainPhoto} alt="" fill sizes="(max-width: 700px) 100vw, 540px"/>}
           <div className={styles.journalShade} aria-hidden="true"/>
-          <div className={styles.journalContent}><p className={styles.label}>04 — Community Journal</p><h2 id="stories-title">만나서 나눈 이야기, 오래 남을 기록.</h2><span className={styles.cardLink}>정기모임 후기 보기 →</span></div>
+          <div className={styles.featureContent}><p className={styles.label}>04 — Community Journal</p><h2 id="stories-title">만나서 나눈 이야기, 오래 남을 기록.</h2><span className={styles.cardLink}>정기모임 후기 보기 →</span></div>
         </Link>
       </div>
       <section id="testimonials" className={`${styles.section} ${styles.testimonials}`} aria-labelledby="testimonials-title">
