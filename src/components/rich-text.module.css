@@ -1,0 +1,7 @@
+.content { overflow-wrap: anywhere; }
+.content p { white-space: pre-wrap; margin: 0 0 1em; line-height: 1.9; }
+.content p:last-child { margin-bottom: 0; }
+.inline { white-space: pre-wrap; overflow-wrap: anywhere; }
+.content strong, .inline strong { font-weight: 700; }
+.content em, .inline em { font-style: italic; }
+.content u, .inline u { text-decoration: underline; text-underline-offset: .15em; }

@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import styles from "./site-header.module.css";
-const menus = [["/members","멤버 소개"],["/wiki","비즈니스 위키"],["/stories","정기모임 후기"],["/testimonials","Testimonial"]];
+const menus = [["/members","멤버 소개"],["/wiki","비즈니스 위키"],["/stories","정기모임 후기"],["/testimonials","멤버 후기"]];
 const introductionMenus = [["/about","HANDA란?"],["/about/guide","운영 방식 및 참여 안내"],["/about/join","참여 신청하기"]];
 export default function SiteHeader({accountMenu}:{accountMenu:React.ReactNode}) {
   const path=usePathname();

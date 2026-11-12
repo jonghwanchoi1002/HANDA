@@ -10,7 +10,7 @@ import { getInitialContent } from "../src/lib/content/initial";
 
 async function setup() {
   const db=new PGlite();
-  for(const name of ["001_content.sql","002_member_auth.sql","003_member_management.sql","004_content_management.sql","005_member_wiki_media.sql","006_wiki_publication_review.sql"]) await db.exec(await readFile(new URL(`../database/migrations/${name}`,import.meta.url),"utf8"));
+  for(const name of ["001_content.sql","002_member_auth.sql","003_member_management.sql","004_content_management.sql","005_member_wiki_media.sql","006_wiki_publication_review.sql","011_editable_introduction_pages.sql"]) await db.exec(await readFile(new URL(`../database/migrations/${name}`,import.meta.url),"utf8"));
   const server=new PGLiteSocketServer({db,port:55447,host:"127.0.0.1",maxConnections:10});await server.start();
   const pool=new Pool({connectionString:"postgresql://postgres@127.0.0.1:55447/postgres",max:3});
   for(const [id,role,status,verified] of [["admin","admin","approved",true],["member","member","approved",true],["pending","admin","pending",true],["unverified","admin","approved",false]]) await pool.query(`INSERT INTO handa_auth_user(id,name,email,role,approval_status,"emailVerified") VALUES($1,$1,$2,$3,$4,$5)`,[id,`${id}@example.test`,role,status,verified]);
@@ -44,14 +44,15 @@ test("concurrent updates preserve the winning version and failed validation leav
     await assert.rejects(saveManagedContent(c.pool,"admin",{...wiki,key:"invalid-key"}),/글 주소/);
     await assert.rejects(saveManagedContent(c.pool,"admin",{...wiki,payload:{...wiki.payload,title:""}}));
     assert.equal((await c.pool.query("SELECT count(*)::int AS count FROM handa_content_audit")).rows[0].count,2);
-    assert.equal((await c.pool.query("SELECT revision FROM handa_content")).rows[0].revision,2);
+    assert.equal((await c.pool.query("SELECT revision FROM handa_content WHERE kind='wiki' AND content_key='new-wiki'")).rows[0].revision,2);
   }finally{await c.close();}
 });
 
 test("all content types round-trip including images; testimonials require consent and homepage stays published",async()=>{
   const c=await setup();try{
     for(const entry of getInitialContent()) {
-      await saveManagedContent(c.pool,"admin",{...entry,revision:0,status:entry.kind==="home"?"published":"draft"});
+      const revision=(await c.pool.query("SELECT revision FROM handa_content WHERE kind=$1 AND content_key=$2",[entry.kind,entry.key])).rows[0]?.revision??0;
+      await saveManagedContent(c.pool,"admin",{...entry,revision,status:entry.kind==="home"||entry.kind==="page"?"published":"draft"});
       const stored=(await c.pool.query("SELECT payload FROM handa_content WHERE kind=$1 AND content_key=$2",[entry.kind,entry.key])).rows[0].payload;
       if(entry.kind==="story")assert.deepEqual(stored.cover,(entry.payload as {cover:unknown}).cover);
     }
@@ -108,4 +109,20 @@ test("reference hero migration replaces WIP copy once, preserves About edits, an
     await saveManagedContent(c.pool,"admin",{...home,payload:{...published,heroTitle:"이후 관리자 수정"},revision:before,status:"published"});
     assert.equal((await readPublishedContent(c.query,"home"))[0].heroTitle,"이후 관리자 수정");
   }finally{await c.close();}
+});
+
+test("only admins edit fixed introduction pages; rich copy persists and seed never overwrites edits",async()=>{
+ const c=await setup();try{
+  const entry=getInitialContent().find(e=>e.kind==="page"&&e.key==="about")!;
+  const initial=(await readPublishedContent(c.query,"page","about"))[0];
+  const payload={...initial,heading:"관리자 수정",body:"새 소개 본문",richText:{body:{type:"doc",content:[{type:"paragraph",content:[{type:"text",text:"새 소개 본문",marks:[{type:"bold"}]}]}]}}};
+  await assert.rejects(saveManagedContent(c.pool,"member",{...entry,payload,revision:1}),/권한/);
+  await assert.rejects(saveManagedContent(c.pool,"member",{...entry,payload,revision:1},{wikiMember:true}),/권한/);
+  await assert.rejects(saveManagedContent(c.pool,"admin",{...entry,payload,revision:1,status:"draft"}),/공개/);
+  await saveManagedContent(c.pool,"admin",{...entry,payload,revision:1});
+  assert.equal((await readPublishedContent(c.query,"page","about"))[0].body,"새 소개 본문");
+  await c.pool.query("INSERT INTO handa_content(kind,content_key,payload,status) VALUES('page','about',$1,'published') ON CONFLICT(kind,content_key) DO NOTHING",[initial]);
+  assert.equal((await readPublishedContent(c.query,"page","about"))[0].heading,"관리자 수정");
+  await assert.rejects(saveManagedContent(c.pool,"admin",{...entry,payload,revision:1}),/다른 관리자/);
+ }finally{await c.close();}
 });

@@ -14,7 +14,7 @@ import { parseContent } from "../src/lib/content/schema";
 
 test("running Next.js protects wiki HTML/RSC, reads current approval and keeps other pages public", {timeout:60000}, async () => {
   const db=new PGlite();
-  for (const name of ["001_content.sql","002_member_auth.sql","003_member_management.sql","004_content_management.sql","005_member_wiki_media.sql","006_wiki_publication_review.sql","007_account_profile_notice.sql","008_profile_visibility.sql"]) await db.exec(await readFile(new URL(`../database/migrations/${name}`,import.meta.url),"utf8"));
+  for (const name of ["001_content.sql","002_member_auth.sql","003_member_management.sql","004_content_management.sql","005_member_wiki_media.sql","006_wiki_publication_review.sql","007_account_profile_notice.sql","008_profile_visibility.sql","011_editable_introduction_pages.sql"]) await db.exec(await readFile(new URL(`../database/migrations/${name}`,import.meta.url),"utf8"));
   const socket=new PGLiteSocketServer({db,host:"127.0.0.1",port:55445,maxConnections:20});await socket.start();
   const databaseURL="postgresql://postgres@127.0.0.1:55445/postgres";
   const pool=new Pool({connectionString:databaseURL,max:1});
@@ -28,7 +28,7 @@ test("running Next.js protects wiki HTML/RSC, reads current approval and keeps o
   try {
     for (const entry of getInitialContent()) {
       const payload=parseContent(entry.kind,entry.payload);
-      await pool.query("INSERT INTO handa_content(kind,content_key,payload,status,is_example,publication_consent,sort_order) VALUES ($1,$2,$3,$4,$5,$6,$7)",[entry.kind,entry.key,payload,entry.status,"isExample" in payload&&payload.isExample,entry.consent,entry.order]);
+      await pool.query("INSERT INTO handa_content(kind,content_key,payload,status,is_example,publication_consent,sort_order) VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(kind,content_key) DO NOTHING",[entry.kind,entry.key,payload,entry.status,"isExample" in payload&&payload.isExample,entry.consent,entry.order]);
     }
     const privateArticle={slug:"private-test",title:"PRIVATE_TITLE_93847",summary:"PRIVATE_SUMMARY_93847",category:"회원",isExample:false,sections:[{title:"비공개 내용",paragraphs:["PRIVATE_BODY_93847"]}]};
     await pool.query("INSERT INTO handa_content(kind,content_key,payload,status) VALUES ('wiki','private-test',$1,'published')",[privateArticle]);

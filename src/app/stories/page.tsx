@@ -1,3 +1,5 @@
+
+import { ContentText } from "@/components/rich-text";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
@@ -17,7 +19,7 @@ export default async function StoriesPage() {
     <p className={styles.count}>총 {stories.length}개의 후기</p>
     {stories.length ? <div className={styles.grid}>{stories.map((story) => <Link className={styles.card} key={story.slug} href={`/stories/${story.slug}`}>
       <div className={styles.cover}>{story.cover ? <Image src={story.cover.url} alt={story.cover.alt} width={story.cover.width} height={story.cover.height} unoptimized /> : <><span aria-hidden="true">↗</span><small>모임 사진 준비 중</small></>}</div>
-      <div className={styles.cardBody}><div className={styles.meta}><time dateTime={story.eventDate}>{formatEventDate(story.eventDate)}</time>{story.isExample && <span>예시 후기</span>}</div><h2>{story.title}</h2><p>{story.summary}</p><span className={styles.location}>{story.location}</span><span className={styles.read}>후기 읽기 <span aria-hidden="true">↗</span></span></div>
+      <div className={styles.cardBody}><div className={styles.meta}><time dateTime={story.eventDate}>{formatEventDate(story.eventDate)}</time>{story.isExample && <span>예시 후기</span>}</div><h2><ContentText content={story} field="title" inline/></h2><p><ContentText content={story} field="summary" inline/></p><span className={styles.location}>{story.location}</span><span className={styles.read}>후기 읽기 <span aria-hidden="true">↗</span></span></div>
     </Link>)}</div> : <div className={styles.empty}><h2>첫 번째 모임 후기를 기다립니다.</h2><p>공개된 후기가 등록되면 이곳에서 만나보실 수 있습니다.</p></div>}
   </main>;
 }

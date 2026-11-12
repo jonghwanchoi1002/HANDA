@@ -1,3 +1,5 @@
+
+import { ContentText } from "@/components/rich-text";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
@@ -17,7 +19,7 @@ export default async function MembersPage() {
     <p className={styles.count}>총 {members.length}개의 프로필</p>
     {members.length ? <div className={styles.grid}>{members.map((member, index) => <Link className={styles.card} key={member.slug} href={`/members/${member.slug}`}>
       <div className={styles.portrait} style={{ "--portrait-tone": ["var(--sage)", "var(--brass)", "var(--sage)"][index % 3] } as React.CSSProperties}>{member.photoUrl ? <Image src={member.photoUrl} alt={`${member.name} 프로필 사진`} width={600} height={450} unoptimized /> : <><span aria-hidden="true">↗</span><small>프로필 사진 준비 중</small></>}</div>
-      <div className={styles.cardBody}><div className={styles.meta}><span>{member.field}</span>{member.isExample && <span>예시 프로필</span>}</div><h2>{member.name}</h2><p className={styles.role}>{member.role}</p><p className={styles.summary}>{member.summary}</p><span className={styles.read}>프로필 보기 <span aria-hidden="true">↗</span></span></div>
+      <div className={styles.cardBody}><div className={styles.meta}><span><ContentText content={member} field="field" inline/></span>{member.isExample && <span>예시 프로필</span>}</div><h2><ContentText content={member} field="name" inline/></h2><p className={styles.role}><ContentText content={member} field="role" inline/></p><p className={styles.summary}><ContentText content={member} field="summary" inline/></p><span className={styles.read}>프로필 보기 <span aria-hidden="true">↗</span></span></div>
     </Link>)}</div> : <div className={styles.empty}><h2>멤버 소개를 준비하고 있습니다.</h2><p>공개된 프로필이 등록되면 이곳에서 만나보실 수 있습니다.</p></div>}
   </main>;
 }

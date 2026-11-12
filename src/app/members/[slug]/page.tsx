@@ -1,3 +1,5 @@
+
+import { ContentText } from "@/components/rich-text";
 import { memberRecords } from "@/data/members";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -26,8 +28,8 @@ export default async function MemberPage({ params }: Props) {
     {member.isExample && <aside className={styles.notice}>실제 인물이 아닌 화면 개발용 예시 프로필입니다.</aside>}
     <article className={styles.profile}>
       <div><div className={styles.profilePortrait}>{member.photoUrl ? <Image src={member.photoUrl} alt={`${member.name} 프로필 사진`} width={600} height={600} unoptimized /> : <><span aria-hidden="true">↗</span><small>프로필 사진 준비 중</small></>}</div></div>
-      <div><p className={styles.eyebrow}>{member.field}</p><h1>{member.name}</h1><p className={styles.profileRole}>{member.role}</p><p className={styles.lead}>{member.summary}</p>
-        <section className={styles.bio}><h2>소개</h2>{member.introduction.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</section>
+      <div><p className={styles.eyebrow}><ContentText content={member} field="field" inline/></p><h1><ContentText content={member} field="name" inline/></h1><p className={styles.profileRole}><ContentText content={member} field="role" inline/></p><p className={styles.lead}><ContentText content={member} field="summary" inline/></p>
+        <section className={styles.bio}><h2>소개</h2><ContentText content={member} field="introduction"/></section>
         <section className={styles.bio}><h2>함께 이야기하고 싶은 주제</h2><ul className={styles.tags}>{member.interests.map((interest) => <li key={interest}>{interest}</li>)}</ul></section>
         <section className={styles.bio}><h2>더 알아보기</h2>{website ? <a className={styles.back} href={website} target="_blank" rel="noopener noreferrer">웹사이트 방문 ↗</a> : <p>아직 등록된 웹사이트가 없습니다.</p>}</section>
       </div>

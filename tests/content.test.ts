@@ -9,6 +9,7 @@ import { readPublishedContent, type ContentQuery } from "../src/lib/content/repo
 async function setup() {
   const db = new PGlite();
   await db.exec(await readFile(new URL("../database/migrations/001_content.sql", import.meta.url), "utf8"));
+  await db.exec(await readFile(new URL("../database/migrations/011_editable_introduction_pages.sql",import.meta.url),"utf8"));
   return db;
 }
 async function seed(db: PGlite) {
@@ -27,7 +28,7 @@ test("migration and initialization support all content types; repeated seed pres
   const db = await setup();
   try {
     await seed(db);
-    const expected = { home: 1, wiki: 3, member: 3, story: 2, testimonial: 3 } as const;
+    const expected = { home: 1, wiki: 3, member: 3, story: 2, testimonial: 3, page:3 } as const;
     for (const kind of Object.keys(expected) as (keyof typeof expected)[]) {
       assert.equal((await readPublishedContent(queryFor(db), kind)).length, expected[kind]);
     }
@@ -35,7 +36,7 @@ test("migration and initialization support all content types; repeated seed pres
     await seed(db);
     const home = await readPublishedContent(queryFor(db), "home", "homepage");
     assert.equal(home[0].heroTitle, "수정된 제목");
-    assert.equal((await db.query<{ count: number }>("SELECT count(*)::int as count FROM handa_content")).rows[0].count,12);
+    assert.equal((await db.query<{ count: number }>("SELECT count(*)::int as count FROM handa_content")).rows[0].count,15);
   } finally { await db.close(); }
 });
 

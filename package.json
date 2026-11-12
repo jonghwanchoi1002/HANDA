@@ -18,9 +18,15 @@
     "test:profile": "tsx --test tests/account-profile.test.ts",
     "test:wiki": "tsx --test tests/wiki-media.test.ts",
     "test:content": "tsx --test tests/content-management.test.ts",
-    "test:members": "tsx --test tests/membership.test.ts"
+    "test:members": "tsx --test tests/membership.test.ts",
+    "test:rich-text": "tsx --test tests/rich-text.test.ts"
   },
   "dependencies": {
+    "@tiptap/core": "3.33.1",
+    "@tiptap/extension-text-style": "3.33.1",
+    "@tiptap/pm": "3.33.1",
+    "@tiptap/react": "3.33.1",
+    "@tiptap/starter-kit": "3.33.1",
     "@vercel/blob": "^2.8.2",
     "better-auth": "1.7.10",
     "next": "16.4.2",

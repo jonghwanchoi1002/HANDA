@@ -10,7 +10,7 @@ export async function getPublishedTestimonials(): Promise<Testimonial[]> {
   return testimonialRecords
     .filter((item) => item.status === "published" && (item.isExample || item.publicationConsent))
     .sort((a, b) => a.sortOrder - b.sortOrder || a.id.localeCompare(b.id))
-    .map(({ id, name, introduction, quote, topic, photo, isExample }) => ({
-      id, name, introduction, quote, topic, photo, isExample,
+    .map(({ id, name, introduction, quote, topic, photo, isExample,richText }) => ({
+      id, name, introduction, quote, topic, photo, isExample,richText,
     }));
 }

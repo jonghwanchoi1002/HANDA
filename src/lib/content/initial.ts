@@ -1,3 +1,4 @@
+import { pageContent } from "@/data/pages";
 import { homeContent } from "@/data/home";
 import { wikiArticles } from "@/data/wiki";
 import { memberRecords } from "@/data/members";
@@ -9,6 +10,7 @@ export type InitialEntry = { kind: ContentKind; key: string; payload: unknown; s
 export function getInitialContent(): InitialEntry[] {
   return [
     { kind: "home", key: "homepage", payload: homeContent, status: "published", consent: false, order: 0 },
+    ...pageContent.map((page,index)=>({kind:"page" as const,key:page.slug,payload:page,status:"published",consent:false,order:index})),
     ...wikiArticles.map((article, index) => ({ kind: "wiki" as const, key: article.slug, payload: article, status: "published", consent: false, order: index })),
     ...memberRecords.map((member, index) => ({ kind: "member" as const, key: member.slug, payload: member, status: member.status, consent: false, order: index })),
     ...storyRecords.map((story, index) => ({ kind: "story" as const, key: story.slug, payload: story, status: story.status, consent: false, order: index })),
