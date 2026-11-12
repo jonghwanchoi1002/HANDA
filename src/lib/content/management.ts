@@ -3,10 +3,10 @@ import { z } from "zod";
 import type { Pool } from "pg";
 import { imageURLs } from "./media-access";
 import { canReadWiki, canManageMembers } from "../auth/permissions";
-import { parseContent, type ContentKind } from "./schema";
+import { parseContent, testimonialSectionsSchema, type ContentKind } from "./schema";
 
-export const kindSchema = z.enum(["home", "wiki", "member", "story", "testimonial"]);
-export const labels: Record<ContentKind, string> = { home: "홈 소개", wiki: "비즈니스 위키", member: "멤버 소개", story: "정기모임 후기", testimonial: "Testimonial" };
+export const kindSchema = z.enum(["home", "page", "member", "wiki", "story", "testimonial"]);
+export const labels: Record<ContentKind, string> = { home: "홈", page:"HANDA 소개", wiki: "비즈니스 위키", member: "멤버 소개", story: "정기모임 후기", testimonial: "멤버 후기" };
 export const saveSchema = z.object({
   kind: kindSchema, key: z.string().max(100).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
   revision: z.number().int().min(0), status: z.enum(["draft", "pending", "published"]),
@@ -18,9 +18,11 @@ export class ContentManagementError extends Error {}
 export async function saveManagedContent(database: Pool, actorId: string, raw: unknown, options: { wikiMember?: boolean } = {}) {
   const input = saveSchema.parse(raw);
   const payload = parseContent(input.kind, input.payload);
+  if(input.kind==="testimonial")testimonialSectionsSchema.parse((payload as {sections?:unknown}).sections);
   if(input.status==="pending" && input.kind!=="wiki")throw new ContentManagementError("공개 대기는 위키 글에서만 사용할 수 있습니다.");
   const example = "isExample" in payload && payload.isExample;
   if (input.kind === "home" && (input.key !== "homepage" || input.status !== "published")) throw new ContentManagementError("홈 소개는 공개 상태로만 저장할 수 있습니다.");
+  if(input.kind==="page"&&input.status!=="published")throw new ContentManagementError("소개 페이지는 공개 상태로만 저장할 수 있습니다.");
   if (input.kind !== "home" && ("slug" in payload ? payload.slug : "id" in payload ? payload.id : undefined) !== input.key) throw new ContentManagementError("글 주소가 일치하지 않습니다.");
   if (input.kind === "testimonial" && input.status === "published" && !example && !input.consent) throw new ContentManagementError("실제 참가자 이야기는 공개 동의를 확인해야 합니다.");
   if (JSON.stringify(payload).length > 200000) throw new ContentManagementError("내용이 너무 깁니다. 글을 나누어 저장해 주세요.");

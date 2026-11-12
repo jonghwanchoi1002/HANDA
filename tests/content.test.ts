@@ -9,6 +9,7 @@ import { readPublishedContent, type ContentQuery } from "../src/lib/content/repo
 async function setup() {
   const db = new PGlite();
   await db.exec(await readFile(new URL("../database/migrations/001_content.sql", import.meta.url), "utf8"));
+  await db.exec(await readFile(new URL("../database/migrations/011_editable_introduction_pages.sql",import.meta.url),"utf8"));
   return db;
 }
 async function seed(db: PGlite) {
@@ -27,7 +28,7 @@ test("migration and initialization support all content types; repeated seed pres
   const db = await setup();
   try {
     await seed(db);
-    const expected = { home: 1, wiki: 3, member: 3, story: 2, testimonial: 3 } as const;
+    const expected = { home: 1, wiki: 3, member: 3, story: 2, testimonial: 3, page:3 } as const;
     for (const kind of Object.keys(expected) as (keyof typeof expected)[]) {
       assert.equal((await readPublishedContent(queryFor(db), kind)).length, expected[kind]);
     }
@@ -35,7 +36,7 @@ test("migration and initialization support all content types; repeated seed pres
     await seed(db);
     const home = await readPublishedContent(queryFor(db), "home", "homepage");
     assert.equal(home[0].heroTitle, "수정된 제목");
-    assert.equal((await db.query<{ count: number }>("SELECT count(*)::int as count FROM handa_content")).rows[0].count,12);
+    assert.equal((await db.query<{ count: number }>("SELECT count(*)::int as count FROM handa_content")).rows[0].count,15);
   } finally { await db.close(); }
 });
 
@@ -111,4 +112,22 @@ test("actual migration, seed and check commands work over PostgreSQL protocol an
     const authCheck = await command("scripts/auth-check.ts");
     assert.match(authCheck.stdout, /Authentication tables are present/);
   } finally { await server.stop(); await db.close(); }
+});
+
+test("testimonial detail lookups exclude drafts and unconsented entries while retaining body formatting", async () => {
+  const db=await setup();
+  try {
+    await seed(db);
+    const key="sample-connection";
+    const legacy=(await readPublishedContent(queryFor(db),"testimonial",key))[0];
+    const body="자세한 후기";
+    const payload=parseContent("testimonial",{...legacy,body,richText:{body:{type:"doc",content:[{type:"paragraph",content:[{type:"text",text:body,marks:[{type:"bold"}]}]}]}}});
+    await db.query("UPDATE handa_content SET payload=$1::jsonb WHERE kind='testimonial' AND content_key=$2",[JSON.stringify(payload),key]);
+    assert.equal((await readPublishedContent(queryFor(db),"testimonial",key))[0].body,body);
+    await db.query("UPDATE handa_content SET status='draft' WHERE kind='testimonial' AND content_key=$1",[key]);
+    assert.deepEqual(await readPublishedContent(queryFor(db),"testimonial",key),[]);
+    await db.query("UPDATE handa_content SET is_example=false,publication_consent=false,payload=jsonb_set(payload,'{isExample}','false') WHERE kind='testimonial' AND content_key=$1",[key]);
+    assert.deepEqual(await readPublishedContent(queryFor(db),"testimonial",key),[]);
+    assert.deepEqual(await readPublishedContent(queryFor(db),"testimonial","missing"),[]);
+  } finally { await db.close(); }
 });

@@ -10,10 +10,8 @@
 .hero h1 { max-width: 880px; font-size: clamp(44px, 5.95vw, 76px); line-height: 1.32; letter-spacing: -.03em; font-weight: 500; margin: 0; word-break: keep-all; }
 .heroDescription { max-width: 480px; font-size: 18px; line-height: 1.85; margin: 32px 0 44px; }
 .heroActions { display: flex; gap: 14px; flex-wrap: wrap; }
-.button { display: inline-flex; min-height: 52px; justify-content: center; align-items: center; background: var(--ink); color: var(--cream); border: 1px solid var(--inverse-border); border-radius: 2px; font-size: 15px; line-height: 1.6; padding: 15px 34px; }
-.button:hover { background: var(--terracotta-deep); }
-.ghost { background: color-mix(in srgb, var(--ink) 36%, transparent); border-color: var(--cream); }
-.ghost:hover { background: var(--ink); }
+.button { display: inline-flex; min-height: 52px; justify-content: center; align-items: center; background: transparent; color: var(--cream); border: 1px solid var(--cream); border-radius: 2px; font-size: 15px; line-height: 1.6; padding: 15px 34px; }
+.button:hover, .button:focus-visible { background: var(--terracotta-deep); }
 .section { padding-block: 120px; }
 .label { font-size: 17px; line-height: 1.7; font-weight: 500; letter-spacing: .02em; color: var(--terracotta-deep); margin: 0 0 24px; }
 .section h2 { max-width: 760px; font-size: clamp(28px, 3vw, 38px); font-weight: 500; line-height: 1.4; letter-spacing: -.03em; margin: 0; word-break: keep-all; }
@@ -22,7 +20,7 @@
 .aboutLead { font-size: 20px; line-height: 1.8; margin: 24px 0 12px; max-width: 760px; }
 .aboutDescription { color: var(--muted); font-size: 16px; line-height: 1.85; max-width: 760px; margin: 0; }
 .values { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 48px; border-top: 1px solid var(--border); margin-top: 64px; padding-top: 48px; }
-.values span { color: var(--terracotta); font-size: 64px; line-height: 1; font-weight: 500; }
+.valueNumber { color: var(--terracotta); font-size: 64px; line-height: 1; font-weight: 500; }
 .values h3 { font-size: 22px; line-height: 1.5; margin: 8px 0 12px; font-weight: 500; letter-spacing: -.03em; }
 .values p { font-size: 16px; line-height: 1.85; color: var(--muted); margin: 0; }
 .people { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 32px; margin-top: 64px; }
@@ -38,18 +36,18 @@
 .peopleLink { display: inline-block; margin-top: 32px; font-size: 14px; line-height: 1.8; color: var(--terracotta-deep); text-decoration: underline; text-underline-offset: 6px; }
 .empty { padding-block: 40px; color: var(--muted); }
 .featureGrid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px; padding-bottom: 120px; }
-.featureCard { min-width: 0; min-height: 340px; padding: 56px; border-radius: 4px; color: var(--cream); background: var(--ink); }
+.featureCard { display: flex; flex-direction: column; min-width: 0; min-height: 340px; padding: 56px; border-radius: 4px; color: var(--cream); background: var(--ink); }
 .featureCard .label { color: var(--brass); font-size: 16px; margin-bottom: 24px; }
 .featureCard h2 { font-size: 30px; line-height: 1.4; letter-spacing: -.03em; font-weight: 500; margin: 0; word-break: keep-all; }
-.cardDescription { font-size: 16px; line-height: 1.85; margin: 16px 0 32px; }
+.cardDescription { font-size: 16px; line-height: 1.85; margin: 16px 0 0; }
 .cardLink { display: inline-block; font-size: 15px; line-height: 1.8; text-decoration: underline; text-underline-offset: 6px; }
 .featureCard:hover .cardLink { text-decoration-thickness: 2px; }
-.journalCard { position: relative; isolation: isolate; overflow: hidden; display: flex; align-items: flex-end; background: var(--ink); }
+.journalCard { position: relative; isolation: isolate; overflow: hidden; background: var(--ink); }
 .journalPhoto { z-index: -2; object-fit: cover; object-position: 78% 68%; }
 .journalShade { position: absolute; z-index: -1; inset: 0; background: linear-gradient(0deg,color-mix(in srgb, var(--ink) 88%, transparent),color-mix(in srgb, var(--ink) 20%, transparent)); }
-.journalContent { width: 100%; }
-.journalContent .label { color: var(--cream); }
-.journalContent .cardLink { margin-top: 22px; }
+.featureContent { display: flex; flex-direction: column; flex: 1; width: 100%; min-width: 0; }
+.journalCard .label { color: var(--cream); }
+.featureContent > .cardLink { align-self: flex-start; margin-top: auto; padding-top: 24px; }
 .testimonials { background: var(--terracotta); color: var(--cream); text-align: center; }
 .testimonials .label { color: var(--cream); font-size: 24px; }
 .testimonials h2 { margin-inline: auto; }
@@ -76,7 +74,7 @@
   .label { font-size: 15px; }
   .aboutLead { font-size: 18px; }
   .values { grid-template-columns: 1fr; margin-top: 40px; padding-top: 32px; gap: 32px; }
-  .values span { font-size: 48px; }
+  .valueNumber { font-size: 48px; }
   .values h3 { font-size: 21px; }
   .people { grid-template-columns: 1fr; gap: 36px; margin-top: 40px; }
   .portrait { aspect-ratio: 4 / 3; }

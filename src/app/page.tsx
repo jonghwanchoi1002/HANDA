@@ -1,3 +1,4 @@
+import { ContentText } from "@/components/rich-text";
 import Image from "next/image";
 import Link from "next/link";
 import { getHomeContent } from "@/lib/home";
@@ -21,22 +22,22 @@ export default async function Home() {
         <div className={styles.heroShade} aria-hidden="true"/>
         <div className={`${styles.wrap} ${styles.heroContent}`}>
           <p className={styles.heroEyebrow}>Berlin Founders Community</p>
-          <h1 id="hero-title">{home.heroTitle}<br/>{home.heroSubtitle} {home.heroHighlight}</h1>
-          <p className={styles.heroDescription}>{home.heroDescription.join(" ")}</p>
-          <div className={styles.heroActions}><a className={styles.button} href="#about">HANDA 알아보기</a><Link className={`${styles.button} ${styles.ghost}`} href="/wiki">비즈니스 위키</Link></div>
+          <h1 id="hero-title"><ContentText content={home} field="heroTitle" formatted={false} inline/><br/><ContentText content={home} field="heroSubtitle" formatted={false} inline/> <ContentText content={home} field="heroHighlight" formatted={false} inline/></h1>
+          <p className={styles.heroDescription}><ContentText content={home} field="heroDescription" formatted={false} inline/></p>
+          <div className={styles.heroActions}><a className={styles.button} href="#about">HANDA 알아보기</a><Link className={styles.button} href="/wiki">비즈니스 위키</Link></div>
         </div>
       </section>
       <section id="about" className={`${styles.section} ${styles.about}`} aria-labelledby="about-title">
         <div className={styles.wrap}>
           <p className={styles.label}>01 — About</p>
-          <h2 id="about-title">{home.aboutTitle.join(" ")}</h2>
-          {home.aboutLead.length>0&&<p className={styles.aboutLead}>{home.aboutLead.join(" ")}</p>}
-          {home.aboutDescription&&<p className={styles.aboutDescription}>{home.aboutDescription}</p>}
+          <h2 id="about-title"><ContentText content={home} field="aboutTitle" formatted={false} inline/></h2>
+          {home.aboutLead.length>0&&<p className={styles.aboutLead}><ContentText content={home} field="aboutLead" formatted={false} inline/></p>}
+          {home.aboutDescription&&<p className={styles.aboutDescription}><ContentText content={home} field="aboutDescription" formatted={false} inline/></p>}
           <div className={styles.values}>{[
             ["01", home.aboutValue1Title, home.aboutValue1Description],
             ["02", home.aboutValue2Title, home.aboutValue2Description],
             ["03", home.aboutValue3Title, home.aboutValue3Description],
-          ].map(([number, title, description]) => <div key={number}><span>{number}</span><h3>{title}</h3><p>{description}</p></div>)}</div>
+          ].map(([number]) => <div key={number}><span className={styles.valueNumber}>{number}</span><h3><ContentText content={home} field={`aboutValue${Number(number)}Title`} formatted={false} inline/></h3><p><ContentText content={home} field={`aboutValue${Number(number)}Description`} formatted={false} inline/></p></div>)}</div>
         </div>
       </section>
       <section id="members" className={styles.section} aria-labelledby="members-title">
@@ -44,27 +45,27 @@ export default async function Home() {
           <p className={styles.label}>02 — Our People</p><h2 id="members-title">다른 경험, 같은 도전.</h2>
           {members.length ? <div className={styles.people}>{members.slice(0,3).map(member => <Link className={styles.person} href={`/members/${member.slug}`} key={member.slug}>
             <div className={styles.portrait}>{member.photoUrl ? <Image src={member.photoUrl} alt={`${member.name} 프로필 사진`} fill sizes="(max-width: 700px) 90vw, 340px" unoptimized/> : <span>프로필 사진 준비 중</span>}</div>
-            <h3>{member.name}</h3><p>{member.field}{member.isExample && <span className={styles.example}> · 예시 멤버</span>}</p>
+            <h3><ContentText content={member} field="name" formatted={false} inline/></h3><p><ContentText content={member} field="field" formatted={false} inline/>{member.isExample && <span className={styles.example}> · 예시 멤버</span>}</p>
           </Link>)}</div> : <p className={styles.empty}>멤버 소개를 준비하고 있습니다.</p>}
           <Link className={styles.peopleLink} href="/members">멤버 소개 전체 보기 →</Link>
         </div>
       </section>
       <div className={`${styles.wrap} ${styles.featureGrid}`}>
         <Link id="wiki" href="/wiki" className={`${styles.featureCard} ${styles.wikiCard}`} aria-labelledby="wiki-title">
-          <p className={styles.label}>03 — Business Wiki</p><h2 id="wiki-title">경험이 쌓이면, 길이 됩니다.</h2>
-          <p className={styles.cardDescription}>승인된 회원을 위한 창업·운영 노하우 위키.</p><span className={styles.cardLink}>위키 전체 보기 →</span>
+          <div className={styles.featureContent}><p className={styles.label}>03 — Business Wiki</p><h2 id="wiki-title">경험이 쌓이면, 길이 됩니다.</h2>
+          <p className={styles.cardDescription}>승인된 회원을 위한 창업·운영 노하우 위키.</p><span className={styles.cardLink}>위키 전체 보기 →</span></div>
         </Link>
         <Link id="stories" href="/stories" className={`${styles.featureCard} ${styles.journalCard}`} aria-labelledby="stories-title">
           {homeMainPhoto && <Image className={styles.journalPhoto} src={homeMainPhoto} alt="" fill sizes="(max-width: 700px) 100vw, 540px"/>}
           <div className={styles.journalShade} aria-hidden="true"/>
-          <div className={styles.journalContent}><p className={styles.label}>04 — Community Journal</p><h2 id="stories-title">만나서 나눈 이야기, 오래 남을 기록.</h2><span className={styles.cardLink}>정기모임 후기 보기 →</span></div>
+          <div className={styles.featureContent}><p className={styles.label}>04 — Community Journal</p><h2 id="stories-title">만나서 나눈 이야기, 오래 남을 기록.</h2><span className={styles.cardLink}>정기모임 후기 보기 →</span></div>
         </Link>
       </div>
       <section id="testimonials" className={`${styles.section} ${styles.testimonials}`} aria-labelledby="testimonials-title">
         <div className={styles.wrap}><p className={styles.label}>05 — Voices of HANDA</p>
-          <h2 id="testimonials-title">{voice ? `“${voice.quote}”` : "함께한 사람들의 목소리."}</h2>
-          {voice ? <p className={styles.voiceAuthor}>{voice.name} · {voice.introduction}</p> : <p className={styles.voiceAuthor}>참가자들의 진솔한 이야기를 준비하고 있습니다.</p>}
-          <Link className={styles.voiceLink} href="/testimonials">Testimonial 전체 보기 →</Link>
+          <h2 id="testimonials-title">{voice ? <>“<ContentText content={voice} field="quote" formatted={false} inline/>”</> : "함께한 사람들의 목소리."}</h2>
+          {voice ? <p className={styles.voiceAuthor}><ContentText content={voice} field="name" formatted={false} inline/> · <ContentText content={voice} field="introduction" formatted={false} inline/></p> : <p className={styles.voiceAuthor}>참가자들의 진솔한 이야기를 준비하고 있습니다.</p>}
+          <Link className={styles.voiceLink} href="/testimonials">멤버 후기 전체 보기 →</Link>
         </div>
       </section>
     </main>

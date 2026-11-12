@@ -1,3 +1,5 @@
+
+import RichText, { ContentText } from "@/components/rich-text";
 import { storyRecords } from "@/data/stories";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -22,13 +24,13 @@ export default async function StoryPage({ params }: Props) {
   if (!story) notFound();
   return <main id="stories-main" className={`${styles.main} ${styles.articleMain}`}>
     <Link href="/stories" className={styles.back}>← 모임 후기 목록</Link>
-    <article><header className={styles.articleHeader}><p className={styles.eyebrow}>COMMUNITY JOURNAL {story.isExample && "· 예시 후기"}</p><h1>{story.title}</h1><p>{story.summary}</p><div className={styles.meta}><time dateTime={story.eventDate}>{formatEventDate(story.eventDate)}</time><span>{story.location}</span></div></header>
+    <article><header className={styles.articleHeader}><p className={styles.eyebrow}>COMMUNITY JOURNAL {story.isExample && "· 예시 후기"}</p><h1><ContentText content={story} field="title" inline/></h1><p><ContentText content={story} field="summary" inline/></p><div className={styles.meta}><time dateTime={story.eventDate}>{formatEventDate(story.eventDate)}</time><span>{story.location}</span></div></header>
       {story.isExample && <aside className={styles.notice}>실제 행사가 아닌 예시 후기입니다. 날짜와 장소도 화면 개발을 위한 가상의 정보입니다.</aside>}
       {story.cover && <StoryPhoto image={story.cover} />}
       <div className={styles.body}>{story.blocks.map((block) => {
         switch (block.type) {
-          case "heading": return <h2 key={block.id}>{block.text}</h2>;
-          case "paragraph": return <p key={block.id}>{block.text}</p>;
+          case "heading": return <h2 key={block.id}><RichText text={block.text} document={block.richText} inline/></h2>;
+          case "paragraph": return <p key={block.id}><RichText text={block.text} document={block.richText} inline/></p>;
           case "image": return <StoryPhoto key={block.id} image={block.image} />;
         }
       })}</div>
