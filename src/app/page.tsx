@@ -37,7 +37,7 @@ export default async function Home() {
             ["01", home.aboutValue1Title, home.aboutValue1Description],
             ["02", home.aboutValue2Title, home.aboutValue2Description],
             ["03", home.aboutValue3Title, home.aboutValue3Description],
-          ].map(([number]) => <div key={number}><span>{number}</span><h3><ContentText content={home} field={`aboutValue${Number(number)}Title`} inline/></h3><p><ContentText content={home} field={`aboutValue${Number(number)}Description`} inline/></p></div>)}</div>
+          ].map(([number]) => <div key={number}><span className={styles.valueNumber}>{number}</span><h3><ContentText content={home} field={`aboutValue${Number(number)}Title`} inline/></h3><p><ContentText content={home} field={`aboutValue${Number(number)}Description`} inline/></p></div>)}</div>
         </div>
       </section>
       <section id="members" className={styles.section} aria-labelledby="members-title">
