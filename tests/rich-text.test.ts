@@ -59,3 +59,13 @@ test("text colors support color-only and combined styles while rejecting arbitra
   assert.equal(normalizeTextColor("rgb(256, 0, 0)"),undefined);
   assert.equal(normalizeTextColor("rgba(1, 2, 3, 0)"),undefined);
 });
+
+test("testimonial summary and optional detailed body preserve separate rich text and legacy entries",()=>{
+  const legacy=parseContent("testimonial",getInitialContent().find(entry=>entry.kind==="testimonial")!.payload);
+  assert.equal(legacy.body,undefined);
+  const detailed=parseContent("testimonial",{...legacy,body:"서식 테스트",richText:{body:formatted}});
+  assert.equal(detailed.quote,legacy.quote);
+  assert.deepEqual(detailed.richText?.body,formatted);
+  assert.equal(parseContent("testimonial",{...legacy,body:""}).body,"");
+  assert.throws(()=>parseContent("testimonial",{...legacy,body:"다른 본문",richText:{body:formatted}}),/일치/);
+});

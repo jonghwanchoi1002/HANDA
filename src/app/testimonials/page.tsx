@@ -27,8 +27,9 @@ export default async function TestimonialsPage() {
         {testimonials.length ? <div className={styles.grid}>{testimonials.map((item) => <article className={styles.card} key={item.id}>
           <div className={styles.cardTop}><span><ContentText content={item} field="topic" inline/></span>{item.isExample && <span>예시 문구</span>}</div>
           <span className={styles.quoteMark} aria-hidden="true">“</span><blockquote><p><ContentText content={item} field="quote" inline/></p></blockquote>
-          <div className={styles.author}><div className={styles.avatar}>{item.photo ? <Image src={item.photo.url} alt={item.photo.alt} width={item.photo.width} height={item.photo.height} unoptimized /> : <span aria-hidden="true">↗</span>}</div><div><h3><ContentText content={item} field="name" inline/></h3><p><ContentText content={item} field="introduction" inline/></p></div></div>
-        </article>)}</div> : <div className={styles.empty}><h3>첫 번째 이야기를 기다립니다.</h3><p>공개된 참가자 이야기가 등록되면 이곳에서 만나보실 수 있습니다.</p></div>}
+          <div className={styles.author}><div className={styles.avatar}>{item.photo ? <Image src={item.photo.url} alt={item.photo.alt} width={item.photo.width} height={item.photo.height} unoptimized /> : <span aria-hidden="true">{item.name.slice(0, 1)}</span>}</div><div><h3><ContentText content={item} field="name" inline/></h3><p><ContentText content={item} field="introduction" inline/></p></div></div>
+          <Link className={styles.cardLink} href={`/testimonials/${item.id}`} aria-label={`${item.name}님의 후기 보기`}>후기 보기 <span aria-hidden="true">↗</span></Link>
+        </article>)}</div> : <div className={styles.empty}><h3>첫 번째 이야기를 기다립니다.</h3><p>공개된 멤버 후기가 등록되면 이곳에서 만나보실 수 있습니다.</p></div>}
       </section>
       <section className={styles.invitation}><p className={styles.eyebrow}>GET TO KNOW HANDA</p><h2>이야기 너머의 사람과 순간들.</h2><p>HANDA의 멤버와 모임 기록도 함께 살펴보세요.</p><div><Link href="/members">멤버 만나보기 ↗</Link><Link href="/stories">모임 후기 읽기 ↗</Link></div></section>
     </main>

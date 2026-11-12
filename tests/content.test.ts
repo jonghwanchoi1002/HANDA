@@ -113,3 +113,21 @@ test("actual migration, seed and check commands work over PostgreSQL protocol an
     assert.match(authCheck.stdout, /Authentication tables are present/);
   } finally { await server.stop(); await db.close(); }
 });
+
+test("testimonial detail lookups exclude drafts and unconsented entries while retaining body formatting", async () => {
+  const db=await setup();
+  try {
+    await seed(db);
+    const key="sample-connection";
+    const legacy=(await readPublishedContent(queryFor(db),"testimonial",key))[0];
+    const body="자세한 후기";
+    const payload=parseContent("testimonial",{...legacy,body,richText:{body:{type:"doc",content:[{type:"paragraph",content:[{type:"text",text:body,marks:[{type:"bold"}]}]}]}}});
+    await db.query("UPDATE handa_content SET payload=$1::jsonb WHERE kind='testimonial' AND content_key=$2",[JSON.stringify(payload),key]);
+    assert.equal((await readPublishedContent(queryFor(db),"testimonial",key))[0].body,body);
+    await db.query("UPDATE handa_content SET status='draft' WHERE kind='testimonial' AND content_key=$1",[key]);
+    assert.deepEqual(await readPublishedContent(queryFor(db),"testimonial",key),[]);
+    await db.query("UPDATE handa_content SET is_example=false,publication_consent=false,payload=jsonb_set(payload,'{isExample}','false') WHERE kind='testimonial' AND content_key=$1",[key]);
+    assert.deepEqual(await readPublishedContent(queryFor(db),"testimonial",key),[]);
+    assert.deepEqual(await readPublishedContent(queryFor(db),"testimonial","missing"),[]);
+  } finally { await db.close(); }
+});

@@ -10,7 +10,14 @@ export async function getPublishedTestimonials(): Promise<Testimonial[]> {
   return testimonialRecords
     .filter((item) => item.status === "published" && (item.isExample || item.publicationConsent))
     .sort((a, b) => a.sortOrder - b.sortOrder || a.id.localeCompare(b.id))
-    .map(({ id, name, introduction, quote, topic, photo, isExample,richText }) => ({
-      id, name, introduction, quote, topic, photo, isExample,richText,
+    .map(({ id, name, introduction, quote, body, topic, photo, isExample,richText }) => ({
+      id, name, introduction, quote, body, topic, photo, isExample,richText,
     }));
+}
+
+// 목록과 상세 페이지에 같은 공개 상태·동의 기준을 적용합니다.
+export async function getPublishedTestimonial(id: string): Promise<Testimonial | undefined> {
+  const database = await getDatabaseContent("testimonial", id);
+  if (database !== null) return database[0];
+  return (await getPublishedTestimonials()).find(item => item.id === id);
 }
