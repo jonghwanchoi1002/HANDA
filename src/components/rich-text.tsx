@@ -19,7 +19,7 @@ export default function RichText({document,text,inline=false}:{document?:RichTex
   if(inline)return <span className={styles.inline}>{document?document.content.map((p,index)=><span key={index}>{index>0&&<br/>}{paragraph(p)}</span>):text}</span>;
   return <div className={styles.content}>{document?document.content.map((p,index)=><p key={index}>{paragraph(p).length?paragraph(p):<br/>}</p>):text.split(/\r?\n/).filter(Boolean).map((line,index)=><p key={index}>{line}</p>)}</div>;
 }
-export function ContentText({content,field,inline=false}:{content:object&{richText?:RichTextMap};field:string;inline?:boolean}){
+export function ContentText({content,field,inline=false,formatted=true}:{content:object&{richText?:RichTextMap};field:string;inline?:boolean;formatted?:boolean}){
   const value=(content as Record<string,unknown>)[field];
-  return <RichText text={Array.isArray(value)?value.join("\n"):String(value??"")} document={content.richText?.[field]} inline={inline}/>;
+  return <RichText text={Array.isArray(value)?value.join("\n"):String(value??"")} document={formatted?content.richText?.[field]:undefined} inline={inline}/>;
 }
