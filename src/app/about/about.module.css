@@ -27,3 +27,7 @@
 @media (max-width: 600px) { .panel > div p { font-size: 16px; } }
 
 .joinDialogActions { flex-wrap: wrap; }
+
+/* Match the lower panel’s horizontal padding and 1px border. */
+.joinApplication { padding-inline: 41px; }
+@media (max-width: 600px) { .joinApplication { padding-inline: 25px; } }
