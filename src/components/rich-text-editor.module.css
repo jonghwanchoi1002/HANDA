@@ -16,3 +16,6 @@
 .area:focus-within { outline: 3px solid var(--focus); outline-offset: 3px; }
 .area [contenteditable="false"] { opacity: .65; }
 .loading { margin: 0; font-size: 13px; padding: 20px; color: var(--muted); border: 1px solid var(--control-border); }
+
+.color { width: 44px; height: 36px; padding: 3px; border: 1px solid var(--control-border); border-radius: 3px; background: var(--cream); cursor: pointer; }
+.color:disabled { cursor: not-allowed; opacity: .55; }

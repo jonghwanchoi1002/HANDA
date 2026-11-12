@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import {test} from "node:test";
-import {documentFromText,richTextDocumentSchema,richTextPlain,type RichTextDocument} from "../src/lib/content/rich-text";
+import {documentFromText,richTextDocumentSchema,richTextPlain,normalizeTextColor,type RichTextDocument} from "../src/lib/content/rich-text";
 import {parseContent} from "../src/lib/content/schema";
 import {getInitialContent} from "../src/lib/content/initial";
 
@@ -19,7 +19,7 @@ test("structured formatting preserves allowed sizes and marks without changing p
   }
 });
 test("arbitrary HTML nodes, unsafe attributes, unknown styles and excessive data are rejected",()=>{
-  for(const node of [{type:"image",attrs:{src:"javascript:alert(1)"}},{type:"text",text:"x",attrs:{onclick:"alert(1)"}},{type:"text",text:"x",marks:[{type:"link",attrs:{href:"javascript:alert(1)"}}]},{type:"text",text:"x",marks:[{type:"textStyle",attrs:{fontSize:"9999px"}}]},{type:"text",text:"x",marks:[{type:"textStyle",attrs:{fontSize:"24px",color:"red"}}]}]){
+  for(const node of [{type:"image",attrs:{src:"javascript:alert(1)"}},{type:"text",text:"x",attrs:{onclick:"alert(1)"}},{type:"text",text:"x",marks:[{type:"link",attrs:{href:"javascript:alert(1)"}}]},{type:"text",text:"x",marks:[{type:"textStyle",attrs:{fontSize:"9999px"}}]},{type:"text",text:"x",marks:[{type:"textStyle",attrs:{fontSize:"24px",color:"url(javascript:alert(1))"}}]}]){
     assert.equal(richTextDocumentSchema.safeParse({type:"doc",content:[{type:"paragraph",content:[node]}]}).success,false);
   }
   assert.equal(richTextDocumentSchema.safeParse(documentFromText("x".repeat(30001))).success,false);
@@ -43,4 +43,19 @@ test("legacy plain text still validates and local page data stays a short placeh
   assert.equal(about.ctaUrl,"https://forms.gle/SXXxb8321efoPFta8");
   const wiki=getInitialContent().find(e=>e.kind==="wiki")!.payload as Record<string,unknown>;
   assert.equal(parseContent("wiki",wiki).richText,undefined);
+});
+
+test("text colors support color-only and combined styles while rejecting arbitrary CSS",()=>{
+  for(const attrs of [{color:"#A94A27"},{fontSize:"24px",color:"#123abc"},{fontSize:"24px"}]){
+    const doc={type:"doc",content:[{type:"paragraph",content:[{type:"text",text:"색상",marks:[{type:"textStyle",attrs}]}]}]};
+    assert.equal(richTextDocumentSchema.safeParse(doc).success,true);
+  }
+  for(const color of ["red","transparent","#123","#11223344","#000000;display:none","var(--ink)","url(https://example.test/x)"]){
+    const doc={type:"doc",content:[{type:"paragraph",content:[{type:"text",text:"색상",marks:[{type:"textStyle",attrs:{color}}]}]}]};
+    assert.equal(richTextDocumentSchema.safeParse(doc).success,false);
+  }
+  assert.equal(normalizeTextColor("#A94A27"),"#a94a27");
+  assert.equal(normalizeTextColor("rgb(169, 74, 39)"),"#a94a27");
+  assert.equal(normalizeTextColor("rgb(256, 0, 0)"),undefined);
+  assert.equal(normalizeTextColor("rgba(1, 2, 3, 0)"),undefined);
 });

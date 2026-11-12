@@ -1,11 +1,23 @@
 import { z } from "zod";
 
 export const fontSizes = ["12px","14px","16px","18px","20px","24px","28px","32px","40px","48px"] as const;
+export const textColorSchema=z.string().regex(/^#[0-9a-fA-F]{6}$/).transform(value=>value.toLowerCase());
+export function normalizeTextColor(value:unknown):string|undefined{
+  if(typeof value!=="string")return undefined;
+  const hex=textColorSchema.safeParse(value.trim());
+  if(hex.success)return hex.data;
+  const rgb=/^rgb\(\s*(\d{1,3})[\s,]+(\d{1,3})[\s,]+(\d{1,3})\s*\)$/i.exec(value.trim());
+  if(!rgb)return undefined;
+  const channels=rgb.slice(1).map(Number);
+  if(channels.some(channel=>channel>255))return undefined;
+  return "#"+channels.map(channel=>channel.toString(16).padStart(2,"0")).join("");
+}
+const textStyleAttributes=z.object({fontSize:z.enum(fontSizes).optional(),color:textColorSchema.optional()}).strict().refine(attrs=>attrs.fontSize!==undefined||attrs.color!==undefined,"Empty text style");
 const mark = z.discriminatedUnion("type",[
   z.object({type:z.literal("bold")}).strict(),
   z.object({type:z.literal("italic")}).strict(),
   z.object({type:z.literal("underline")}).strict(),
-  z.object({type:z.literal("textStyle"),attrs:z.object({fontSize:z.enum(fontSizes)}).strict()}).strict(),
+  z.object({type:z.literal("textStyle"),attrs:textStyleAttributes}).strict(),
 ]);
 const inlineNode=z.discriminatedUnion("type",[
   z.object({type:z.literal("text"),text:z.string().min(1).max(30000),marks:z.array(mark).max(4).optional()}).strict(),

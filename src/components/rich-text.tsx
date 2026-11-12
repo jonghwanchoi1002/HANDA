@@ -11,7 +11,7 @@ export default function RichText({document,text,inline=false}:{document?:RichTex
         if(mark.type==="bold")result=<strong>{result}</strong>;
         if(mark.type==="italic")result=<em>{result}</em>;
         if(mark.type==="underline")result=<u>{result}</u>;
-        if(mark.type==="textStyle")result=<span style={{fontSize:mark.attrs.fontSize}}>{result}</span>;
+        if(mark.type==="textStyle")result=<span style={{fontSize:mark.attrs.fontSize,color:mark.attrs.color}}>{result}</span>;
       }
       return <span key={index}>{result}</span>;
     });
