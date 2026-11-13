@@ -15,7 +15,6 @@ export default async function StoriesPage() {
   const stories = await getPublishedStories();
   return <main id="stories-main" className={styles.main}>
     <section className={styles.hero}><p className={styles.eyebrow}>HANDA COMMUNITY JOURNAL</p><h1>함께한 순간,<br /><span>오래 남을 이야기.</span></h1><p>만나서 나눈 질문과 배움.<br />우리의 다음 시작이 될 순간들을 기록합니다.</p></section>
-    {stories.some((story) => story.isExample) && <aside className={styles.notice}>현재 글은 화면 확인을 위한 예시입니다. 날짜·장소는 가상의 정보이며 실제 행사 후기가 아닙니다.</aside>}
     <p className={styles.count}>총 {stories.length}개의 후기</p>
     {stories.length ? <div className={styles.grid}>{stories.map((story) => <Link className={styles.card} key={story.slug} href={`/stories/${story.slug}`}>
       <div className={styles.cover}>{story.cover ? <Image src={story.cover.url} alt={story.cover.alt} width={story.cover.width} height={story.cover.height} unoptimized /> : <><span aria-hidden="true">↗</span><small>모임 사진 준비 중</small></>}</div>

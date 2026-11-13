@@ -28,7 +28,6 @@ export default async function MemberPage({ params }: Props) {
   const websites = getMemberWebsiteLinks(member).filter(link=>/^https?:\/\//i.test(link.url));
   return <main id="members-main" className={styles.main}>
     <Link href="/members" className={styles.back}>← 멤버 목록</Link>
-    {member.isExample && <aside className={styles.notice}>실제 인물이 아닌 화면 개발용 예시 프로필입니다.</aside>}
     <article className={styles.profile}>
       <div><div className={styles.profilePortrait}>{member.photoUrl ? <Image src={member.photoUrl} alt={`${member.name} 프로필 사진`} width={600} height={600} unoptimized /> : <><span aria-hidden="true">↗</span><small>프로필 사진 준비 중</small></>}</div></div>
       <div><p className={styles.eyebrow}><ContentText content={member} field="field" inline/></p><h1><ContentText content={member} field="name" inline/></h1><p className={styles.profileRole}><ContentText content={member} field="role" inline/></p><p className={styles.lead}><ContentText content={member} field="summary" inline/></p>

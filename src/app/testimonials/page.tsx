@@ -21,7 +21,6 @@ export default async function TestimonialsPage() {
 
     <main id="testimonials-main" className={styles.main}>
       <section className={styles.hero}><p className={styles.eyebrow}>VOICES OF HANDA</p><h1>함께한 사람들의<br /><span>목소리를 담습니다.</span></h1><p>연결되는 순간, 서로에게 배우는 시간.<br />HANDA와 함께하는 사람들의 이야기를 모아갑니다.</p></section>
-      {testimonials.some((item) => item.isExample) && <aside className={styles.notice}>아래 예시 문구와 프로필은 화면 개발을 위해 만든 가상의 내용입니다. 실제 참가자의 추천사가 아닙니다.</aside>}
       <section aria-labelledby="voices-title" className={styles.voices}>
         <div className={styles.sectionHeading}><h2 id="voices-title">연결, 배움, 성장의 이야기</h2><p>총 {testimonials.length}개의 이야기</p></div>
         {testimonials.length ? <div className={styles.grid}>{testimonials.map((item) => <article className={styles.card} key={item.id}>
