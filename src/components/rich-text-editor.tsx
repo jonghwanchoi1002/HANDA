@@ -1,4 +1,5 @@
 "use client";
+import { LoadingIndicator } from "./loading-state";
 import { useEffect, useId, useRef, type CSSProperties } from "react";
 import { EditorContent, useEditor, useEditorState } from "@tiptap/react";
 import type { JSONContent } from "@tiptap/core";
@@ -79,6 +80,6 @@ export default function RichTextEditor({label,name,value,document,onChange,disab
       <button type="button" aria-label={`${label} 밑줄`} aria-pressed={selected?.underline??false} disabled={disabled||!editor} onMouseDown={e=>e.preventDefault()} onClick={()=>formattingChain()?.toggleUnderline().run()}><u>밑줄</u></button>
       <button type="button" aria-label={`${label} 서식 지우기`} disabled={disabled||!editor} onMouseDown={e=>e.preventDefault()} onClick={()=>formattingChain()?.unsetAllMarks().run()}>서식 지우기</button>
     </div>
-    {editor?<EditorContent editor={editor} className={styles.area}/>:<p className={styles.loading} role="status">편집기를 불러오는 중입니다.</p>}
+    {editor?<EditorContent editor={editor} className={styles.area}/>:<div className={styles.loading}><LoadingIndicator message="편집기 불러오는 중"/></div>}
   </div>;
 }

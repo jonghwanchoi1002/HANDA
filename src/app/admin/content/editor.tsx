@@ -16,6 +16,8 @@ import type { ContentMap } from "@/lib/content/schema";
 import { saveContent, type SaveState } from "./actions";
 import common from "@/app/login/auth.module.css";
 import styles from "./content.module.css";
+import MemberWebsites from "./member-websites";
+import { getMemberWebsites } from "@/lib/content/member-websites";
 
 type Section = {number?:string;highlight?:boolean;title:string;body:string;titleRichText?:RichTextDocument;bodyRichText?:RichTextDocument};
 type Block = ContentMap["story"]["blocks"][number];
@@ -31,6 +33,10 @@ function ContentEditorForm({entry: initialEntry,mode="admin",uploadsEnabled=fals
   const router=useRouter();
   const listPath=mode==="wiki"?"/account/posts":`/admin/content?kind=${entry.kind}`;
   const [uploading,setUploading]=useState(false);
+  const [websites,setWebsites]=useState<string[]>(()=>{
+    const existing=getMemberWebsites(entry.payload);
+    return existing.length?existing:[""];
+  });
   const [photos,setPhotos]=useState<Photo[]>(()=>{
     if(entry.kind==="wiki")return (entry.payload.photos as Photo[]|undefined)??[];
     if(entry.kind==="member")return entry.payload.photoUrl?[{url:String(entry.payload.photoUrl),alt:`${entry.payload.name} 프로필 사진`,width:600,height:600}]:[];
@@ -54,9 +60,10 @@ function ContentEditorForm({entry: initialEntry,mode="admin",uploadsEnabled=fals
   });
   const [blocks,setBlocks]=useState<Block[]>(()=>entry.payload.blocks as Block[] ?? []);
   const [dirty,setDirty]=useState(false);
-  const savedSnapshot=useRef({values,richText,status,order,example,consent,sections,blocks,photos});
+  const savedSnapshot=useRef({values,richText,status,order,example,consent,sections,blocks,photos,websites});
   function discardAndGo(){
     const saved=savedSnapshot.current;
+    setWebsites(saved.websites);
     setValues(saved.values);setRichText(saved.richText);setStatus(saved.status);setOrder(saved.order);setExample(saved.example);setConsent(saved.consent);setSections(saved.sections);setBlocks(saved.blocks);setPhotos(saved.photos);
     const target=leaveTarget!;setDirty(false);setLeaveTarget(null);router.push(target);
   }
@@ -82,12 +89,16 @@ function ContentEditorForm({entry: initialEntry,mode="admin",uploadsEnabled=fals
     }
     if(entry.kind==="story") {payload.blocks=blocks;payload.cover=photos[0]?{...photos[0],id:"cover",caption:photos[0].alt}:null;}
     if(entry.kind==="wiki")payload.photos=photos;
-    if(entry.kind==="member")payload.photoUrl=photos[0]?.url??null;
+    if(entry.kind==="member") {
+      payload.photoUrl=photos[0]?.url??null;
+      payload.websites=form.getAll("websites").map(value=>String(value).trim()).filter(Boolean);
+      payload.website=(payload.websites as string[])[0]??null;
+    }
     if(entry.kind==="testimonial")payload.photo=photos[0]??null;
     const request=new FormData();request.set("entry",JSON.stringify({...entry,payload,revision:previous.revision ?? entry.revision,status:(entry.kind==="home"||entry.kind==="page")?"published":String(form.get("status")),consent:form.get("consent")==="on",order:mode==="wiki"?entry.order:Number(form.get("order"))}));
     const result=await (mode==="wiki"?saveWiki:saveContent)(previous,request);
     if(result.saved) {
-      savedSnapshot.current={values,richText,status,order,example,consent,sections,blocks,photos};
+      savedSnapshot.current={values,richText,status,order,example,consent,sections,blocks,photos,websites};
       setDirty(false);
       if(result.path) {
         if(result.reviewRequested) onReviewRequested(result.path);
@@ -108,7 +119,7 @@ function ContentEditorForm({entry: initialEntry,mode="admin",uploadsEnabled=fals
 
   }
   return <><form action={action} onChange={()=>setDirty(true)} className={styles.editor}>
-    <fieldset disabled={pending||uploading}><legend>기본 내용</legend>{editorFields[entry.kind].filter(field=>!closingKeys.includes(field.key)).map(renderField)}</fieldset>
+    <fieldset disabled={pending||uploading}><legend>기본 내용</legend>{editorFields[entry.kind].filter(field=>!closingKeys.includes(field.key)).map(renderField)}{entry.kind==="member"&&<MemberWebsites values={websites} onChange={next=>{setWebsites(next);setDirty(true);}}/>}</fieldset>
     {(entry.kind==="wiki"||entry.kind==="testimonial") && <fieldset disabled={pending||uploading}><legend>본문 (필수)</legend>{entry.kind==="testimonial"&&<p className={styles.help}>최소 한 개의 섹션 내용이 필요합니다. 번호와 제목은 생략할 수 있으며, 일반 글은 한 섹션에 모두 작성하세요.</p>}{sections.map((section,index)=><div className={styles.group} key={index}>{entry.kind==="testimonial"&&<label className={styles.field}>섹션 {index+1} 번호 (선택)<input className={styles.sectionNumberInput} value={section.number??""} maxLength={20} placeholder="예: 01 (비워두면 표시하지 않음)" onChange={event=>{setSections(items=>items.map((item,i)=>i===index?{...item,number:event.target.value}:item));setDirty(true);}}/></label>}<RichTextEditor label={`섹션 ${index+1} 제목${entry.kind==="testimonial"?" (선택)":""}` } value={section.title} document={section.titleRichText} defaultColor={entry.kind==="testimonial"?"#a94a27":undefined} compact required={entry.kind==="wiki"} disabled={pending||uploading} onChange={(title,titleRichText)=>{setSections(items=>items.map((item,i)=>i===index?{...item,title,titleRichText}:item));setDirty(true);}}/><RichTextEditor label={`섹션 ${index+1} 내용`} value={section.body} document={section.bodyRichText} required disabled={pending||uploading} onChange={(body,bodyRichText)=>{setSections(items=>items.map((item,i)=>i===index?{...item,body,bodyRichText}:item));setDirty(true);}}/>{entry.kind==="testimonial"&&<label className={styles.check}><input type="checkbox" checked={section.highlight??false} onChange={event=>{setSections(items=>items.map((item,i)=>i===index?{...item,highlight:event.target.checked}:item));setDirty(true);}}/>이 섹션 내용을 강조 배지로 표시</label>}<div className={styles.controls}><button type="button" className={common.button} disabled={index===0} onClick={()=>{setSections(move(sections,index,-1));setDirty(true);}}>위로</button><button type="button" className={common.button} disabled={index===sections.length-1} onClick={()=>{setSections(move(sections,index,1));setDirty(true);}}>아래로</button><button type="button" className={common.button} disabled={sections.length===1} onClick={()=>{setSections(sections.filter((_,i)=>i!==index));setDirty(true);}}>섹션 삭제</button></div></div>)}<button type="button" className={common.button} disabled={entry.kind==="testimonial"&&sections.length>=30} onClick={()=>{setSections([...sections,{title:"",body:""}]);setDirty(true);}}>섹션 추가</button></fieldset>}
     {entry.kind==="testimonial"&&<fieldset disabled={pending||uploading}><legend>마무리 참여 안내 (선택)</legend><p className={styles.help}>비워 둔 항목은 표시하지 않습니다. 참여 버튼은 문구와 링크를 모두 입력한 경우에만 표시됩니다.</p>{editorFields.testimonial.filter(field=>closingKeys.includes(field.key)).map(renderField)}</fieldset>}
     {entry.kind==="story" && <fieldset disabled={pending||uploading}><legend>본문</legend>{blocks.map((block,index)=><div key={block.id} className={styles.group}>{block.type==="image"?<p className={styles.help}>기존 사진: {block.image.alt} (사진 정보는 그대로 유지됩니다.)</p>:<><label className={styles.field}>내용 종류<select value={block.type} onChange={event=>setBlocks(items=>items.map(item=>item.id===block.id?{...block,type:event.target.value as "paragraph"|"heading"}:item))}><option value="paragraph">문단</option><option value="heading">소제목</option></select></label><RichTextEditor label={`${index+1}. ${block.type==="heading"?"소제목":"문단"}`} value={block.text} document={block.richText} compact={block.type==="heading"} required disabled={pending||uploading} onChange={(text,richText)=>{setBlocks(items=>items.map(item=>item.id===block.id?{...block,text,richText}:item));setDirty(true);}}/></>}<div className={styles.controls}><button type="button" className={common.button} disabled={index===0} onClick={()=>{setBlocks(move(blocks,index,-1));setDirty(true);}}>위로</button><button type="button" className={common.button} disabled={index===blocks.length-1} onClick={()=>{setBlocks(move(blocks,index,1));setDirty(true);}}>아래로</button>{block.type!=="image" && <button type="button" className={common.button} disabled={blocks.length===1} onClick={()=>{setBlocks(blocks.filter(item=>item.id!==block.id));setDirty(true);}}>문단 삭제</button>}</div></div>)}<button type="button" className={common.button} onClick={()=>{setBlocks([...blocks,{id:crypto.randomUUID(),type:"paragraph",text:""}]);setDirty(true);}}>문단 추가</button></fieldset>}

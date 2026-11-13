@@ -19,6 +19,25 @@ async function setup() {
 }
 const wiki={kind:"wiki",key:"new-wiki",revision:0,status:"draft",consent:false,order:2,payload:{slug:"new-wiki",title:"새 위키",category:"창업",summary:"요약",isExample:false,sections:[{title:"첫 단계",paragraphs:["내용"]}]}};
 
+test("member websites create, reload, update and clear without a database migration",async()=>{
+  const c=await setup();try{
+    const initial=getInitialContent().find(entry=>entry.kind==="member")!;
+    const entry={...initial,status:"published",revision:0,payload:{...initial.payload as object,website:"www.example.com"}};
+    await saveManagedContent(c.pool,"admin",entry);
+    let member=(await readPublishedContent(c.query,"member"))[0];
+    assert.equal(member.website,"https://www.example.com");
+    await saveManagedContent(c.pool,"admin",{...entry,revision:1,payload:{...member,websites:["example.com/path","","https://second.example.com"]}});
+    member=(await readPublishedContent(c.query,"member"))[0];
+    assert.deepEqual(member.websites,["https://example.com/path","https://second.example.com"]);
+    await assert.rejects(saveManagedContent(c.pool,"admin",{...entry,revision:2,payload:{...member,websites:["javascript:alert(1)"]}}));
+    assert.deepEqual((await readPublishedContent(c.query,"member"))[0].websites,member.websites);
+    await saveManagedContent(c.pool,"admin",{...entry,revision:2,payload:{...member,websites:[]}});
+    member=(await readPublishedContent(c.query,"member"))[0];
+    assert.deepEqual(member.websites,[]);
+    assert.equal(member.website,null);
+  }finally{await c.close();}
+});
+
 test("only current approved verified admins can write; drafts stay private and publishing/unpublishing takes effect",async()=>{
   const c=await setup();try{
     for(const actor of ["member","pending","unverified","missing"])await assert.rejects(saveManagedContent(c.pool,actor,wiki),/권한/);

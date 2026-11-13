@@ -1,0 +1,13 @@
+.page { min-height: calc(100svh - var(--header-height)); padding: 48px 24px; display: grid; place-items: center; background: var(--cream); color: var(--ink); }
+.content { width: 100%; max-width: 440px; text-align: center; padding: 40px 24px; }
+.brand { display: block; color: var(--terracotta-deep); font-size: 11px; font-weight: 700; letter-spacing: 3px; }
+.symbol { display: grid; place-items: center; width: 64px; height: 64px; margin: 24px auto; border: 1px solid var(--border); border-radius: 50%; color: var(--terracotta-deep); background: var(--sage); }
+.spinner { display: inline-block; width: 20px; height: 20px; flex-shrink: 0; border: 2px solid color-mix(in srgb, currentColor 20%, transparent); border-top-color: currentColor; border-radius: 50%; animation: turn 1s linear infinite; }
+.symbol .spinner { width: 26px; height: 26px; }
+.content h1 { margin: 0; font-size: clamp(19px, 3vw, 24px); line-height: 1.6; letter-spacing: -.7px; word-break: keep-all; }
+.content p { margin: 10px 0 0; color: var(--muted); font-size: 14px; line-height: 1.8; word-break: keep-all; }
+.inline { display: inline-flex; align-items: center; gap: 10px; max-width: 100%; font-size: 13px; line-height: 1.6; color: inherit; }
+.inline .spinner { width: 14px; height: 14px; }
+@keyframes turn { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
+@media (max-width: 600px) { .page { padding: 32px 20px; } .content { padding: 32px 0; } }
