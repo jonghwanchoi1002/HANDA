@@ -6,6 +6,7 @@ import { PGLiteSocketServer } from "@electric-sql/pglite-socket";
 import { Pool } from "pg";
 import { saveManagedContent } from "../src/lib/content/management";
 import { readPublishedContent } from "../src/lib/content/repository";
+import { richTextPlain, type RichTextDocument } from "../src/lib/content/rich-text";
 import { getInitialContent } from "../src/lib/content/initial";
 
 async function setup() {
@@ -18,6 +19,20 @@ async function setup() {
   return {pool,query,close:async()=>{await pool.end();await server.stop();await db.close();}};
 }
 const wiki={kind:"wiki",key:"new-wiki",revision:0,status:"draft",consent:false,order:2,payload:{slug:"new-wiki",title:"새 위키",category:"창업",summary:"요약",isExample:false,sections:[{title:"첫 단계",paragraphs:["내용"]}]}};
+
+test("headings, checklist state and paragraph layout survive content save and reload",async()=>{
+  const c=await setup();try{
+    const document:RichTextDocument={type:"doc",content:[
+      {type:"heading",attrs:{level:2,textAlign:"center",lineHeight:"2"},content:[{type:"text",text:"서식 제목",marks:[{type:"textStyle",attrs:{fontFamily:"Georgia",fontSize:"24px"}}]}]},
+      {type:"taskList",content:[{type:"taskItem",attrs:{checked:true},content:[{type:"paragraph",attrs:{indent:1},content:[{type:"text",text:"완료한 항목"}]}]}]},
+    ]};
+    await saveManagedContent(c.pool,"admin",{...wiki,status:"published",payload:{...wiki.payload,sections:[{title:"본문",paragraphs:richTextPlain(document).split("\n"),bodyRichText:document}]}});
+    const published=(await readPublishedContent(c.query,"wiki"))[0];
+    assert.deepEqual(published.sections[0].bodyRichText,document);
+    assert.equal(richTextPlain(published.sections[0].bodyRichText!),"서식 제목\n완료한 항목");
+    await assert.rejects(saveManagedContent(c.pool,"admin",{...wiki,revision:1,payload:{...wiki.payload,sections:[{title:"본문",paragraphs:["다른 내용"],bodyRichText:document}]}}));
+  }finally{await c.close();}
+});
 
 test("member websites create, reload, update and clear without a database migration",async()=>{
   const c=await setup();try{

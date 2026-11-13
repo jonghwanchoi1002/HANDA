@@ -1,5 +1,5 @@
 import type { ContentMap } from "./schema";
-import { documentFromText, richTextPlain, type RichTextDocument, type RichTextInline } from "./rich-text";
+import { documentFromText, richTextPlain, richTextTextBlocks, type RichTextDocument, type RichTextInline } from "./rich-text";
 
 /** Split both editor paragraphs and Shift+Enter line breaks, preserving text marks. */
 export function testimonialSectionTags(section: Pick<TestimonialSection, "paragraphs" | "bodyRichText">) {
@@ -12,7 +12,7 @@ export function testimonialSectionTags(section: Pick<TestimonialSection, "paragr
     if (text.trim()) items.push({ text, document });
     line = [];
   }
-  for (const paragraph of source.content) {
+  for (const paragraph of richTextTextBlocks(source)) {
     for (const node of paragraph.content ?? []) {
       if (node.type === "hardBreak") flush();
       else node.text.split(/\r?\n/).forEach((text, index) => {
