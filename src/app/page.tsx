@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import HomeTestimonials from "@/components/home-testimonials";
 import HomeHeroPhoto from "@/components/home-hero-photo";
 import { ContentText } from "@/components/rich-text";
 import Image from "next/image";
@@ -15,7 +16,6 @@ export default async function Home() {
   const [home, members, testimonials] = await Promise.all([
     getHomeContent(), getPublishedMembers(), getPublishedTestimonials(),
   ]);
-  const voice = testimonials.find(item => !item.isExample);
   return <div className={styles.page}>
     <a href="#main" className={styles.skip}>본문으로 바로가기</a>
     <main id="main">
@@ -63,10 +63,9 @@ export default async function Home() {
           <div className={styles.featureContent}><p className={styles.label}>04 — Community Journal</p><h2 id="stories-title">만나서 나눈 이야기, 오래 남을 기록.</h2><span className={styles.cardLink}>정기모임 후기 보기 →</span></div>
         </Link>
       </div>
-      <section id="testimonials" className={`${styles.section} ${styles.testimonials}`} aria-labelledby="testimonials-title">
-        <div className={styles.wrap}><p className={styles.label}>05 — Voices of HANDA</p>
-          <h2 id="testimonials-title">{voice ? <>“<ContentText content={voice} field="quote" formatted={false} inline/>”</> : "함께한 사람들의 목소리."}</h2>
-          {voice ? <p className={styles.voiceAuthor}><ContentText content={voice} field="name" formatted={false} inline/> · <ContentText content={voice} field="introduction" formatted={false} inline/></p> : <p className={styles.voiceAuthor}>참가자들의 진솔한 이야기를 준비하고 있습니다.</p>}
+      <section id="testimonials" className={`${styles.section} ${styles.testimonials}`} aria-labelledby="testimonials-label">
+        <div className={styles.wrap}><p id="testimonials-label" className={styles.label}>05 — Voices of HANDA</p>
+          <Suspense fallback={<p className={styles.voiceAuthor}>멤버 후기를 불러오고 있습니다.</p>}><HomeTestimonials testimonials={testimonials}/></Suspense>
           <Link className={styles.voiceLink} href="/testimonials">멤버 후기 전체 보기 →</Link>
         </div>
       </section>

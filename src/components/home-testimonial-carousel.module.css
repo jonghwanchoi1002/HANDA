@@ -1,0 +1,18 @@
+.carousel { min-width: 0; outline-offset: 8px; }
+.row { display: flex; align-items: center; gap: 20px; }
+.viewport { flex: 1; min-width: 0; overflow: hidden; touch-action: pan-y; }
+.track { display: flex; align-items: stretch; transition: transform 300ms ease; }
+.slide { flex: 0 0 100%; min-width: 0; overflow-wrap: anywhere; display: flex; flex-direction: column; justify-content: center; }
+.slide h2 { width: 100%; }
+.arrow { flex: 0 0 44px; width: 44px; height: 44px; display: grid; place-items: center; padding: 8px; border: 1px solid currentColor; border-radius: 50%; background: transparent; color: inherit; cursor: pointer; }
+.arrow svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.arrow:hover { background: rgb(255 255 255 / 12%); }
+.arrow:focus-visible, .dots button:focus-visible { outline: 3px solid currentColor; outline-offset: 4px; }
+.controls { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 24px; }
+.dots { display: flex; }
+.dots button { display: grid; place-items: center; width: 36px; height: 36px; padding: 0; color: inherit; border: 0; background: transparent; cursor: pointer; }
+.dots span { width: 8px; height: 8px; border: 1px solid currentColor; border-radius: 50%; }
+.dots button[aria-current] span { background: currentColor; }
+.counter { font-size: 14px; font-variant-numeric: tabular-nums; }
+@media (max-width: 600px) { .row { gap: 6px; } .arrow { flex-basis: 36px; width: 36px; height: 36px; padding: 6px; } .slide h2 { font-size: clamp(20px, 5vw, 28px); } }
+@media (prefers-reduced-motion: reduce) { .track { transition: none; } }
