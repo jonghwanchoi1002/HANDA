@@ -1,4 +1,4 @@
-type IconName = "left" | "center" | "right" | "justify" | "spacing" | "indent" | "outdent" | "bullet" | "numbered" | "clear" | "undo" | "redo" | "chevron";
+type IconName = "bold" | "italic" | "underline" | "left" | "center" | "right" | "justify" | "spacing" | "indent" | "outdent" | "bullet" | "numbered" | "clear" | "undo" | "redo" | "chevron";
 
 export default function EditorIcon({ name }: { name: IconName }) {
   const lines = name === "center" ? [[4, 4, 20, 4], [7, 9, 17, 9], [4, 14, 20, 14], [7, 19, 17, 19]]
@@ -7,6 +7,9 @@ export default function EditorIcon({ name }: { name: IconName }) {
     : name === "left" ? [[4, 4, 20, 4], [4, 9, 15, 9], [4, 14, 20, 14], [4, 19, 15, 19]] : [];
   return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     {lines.map(([x1, y1, x2, y2], index) => <line key={index} x1={x1} y1={y1} x2={x2} y2={y2}/>)}
+    {name === "bold" && <path strokeWidth="2.3" d="M7 4v16h6a4 4 0 0 0 0-8H7m0-8h5a4 4 0 0 1 0 8"/>}
+    {name === "italic" && <path d="M10 4h9M5 20h9M15 4 9 20"/>}
+    {name === "underline" && <path d="M6 4v8a6 6 0 0 0 12 0V4M4 21h16"/>}
     {name === "spacing" && <><path d="M6 3v18m-3-3 3 3 3-3M3 6l3-3 3 3M13 5h8M13 12h8M13 19h8"/></>}
     {(name === "indent" || name === "outdent") && <><path d="M3 4h18M11 9h10M11 14h10M3 20h18"/><path d={name === "indent" ? "m3 8 4 4-4 4" : "m7 8-4 4 4 4"}/></>}
     {name === "bullet" && <><circle cx="4" cy="5" r="1" fill="currentColor"/><circle cx="4" cy="12" r="1" fill="currentColor"/><circle cx="4" cy="19" r="1" fill="currentColor"/><path d="M9 5h12M9 12h12M9 19h12"/></>}

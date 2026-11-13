@@ -156,9 +156,9 @@ export default function RichTextEditor({ label, name, value, document, onChange,
         </select>
       </div>
       <div className={styles.group}>
-        <button type="button" aria-label={`${label} 굵게`} title="굵게" aria-pressed={selected?.bold ?? false} disabled={inactive} onMouseDown={preventFocus} onClick={() => chain()?.toggleBold().run()}><strong>B</strong></button>
-        <button type="button" aria-label={`${label} 기울임`} title="기울임" aria-pressed={selected?.italic ?? false} disabled={inactive} onMouseDown={preventFocus} onClick={() => chain()?.toggleItalic().run()}><em>I</em></button>
-        <button type="button" aria-label={`${label} 밑줄`} title="밑줄" aria-pressed={selected?.underline ?? false} disabled={inactive} onMouseDown={preventFocus} onClick={() => chain()?.toggleUnderline().run()}><u>U</u></button>
+        <button type="button" aria-label={`${label} 굵게`} title="굵게" aria-pressed={selected?.bold ?? false} disabled={inactive} onMouseDown={preventFocus} onClick={() => chain()?.toggleBold().run()}><EditorIcon name="bold"/></button>
+        <button type="button" aria-label={`${label} 기울임`} title="기울임" aria-pressed={selected?.italic ?? false} disabled={inactive} onMouseDown={preventFocus} onClick={() => chain()?.toggleItalic().run()}><EditorIcon name="italic"/></button>
+        <button type="button" aria-label={`${label} 밑줄`} title="밑줄" aria-pressed={selected?.underline ?? false} disabled={inactive} onMouseDown={preventFocus} onClick={() => chain()?.toggleUnderline().run()}><EditorIcon name="underline"/></button>
         <label className={styles.colorControl} title="글자 색상" style={{ "--selected-color": selected?.color || defaultColor } as CSSProperties}>
           <span className={styles.colorLetter} aria-hidden="true">A</span><span className={styles.colorBar} aria-hidden="true"/>
           <input type="color" aria-label={`${label} 글자 색상`} value={selected?.color || defaultColor} disabled={inactive} onInput={e => applyColor(e.currentTarget.value)} onChange={e => applyColor(e.currentTarget.value)}/>
@@ -166,14 +166,11 @@ export default function RichTextEditor({ label, name, value, document, onChange,
       </div>
       <div className={styles.group} ref={menuGroup} onKeyDown={menuKeys}>
         <div className={styles.dropdown}>
-          <button ref={alignTrigger} type="button" className={styles.menuTrigger} aria-label={`${label} 정렬 메뉴`} title="정렬 및 들여쓰기" aria-haspopup="menu" aria-expanded={openMenu === "alignment"} disabled={inactive} onMouseDown={preventFocus} onClick={() => toggleMenu("alignment")}><EditorIcon name={selected?.align === "center" ? "center" : selected?.align === "right" ? "right" : selected?.align === "justify" ? "justify" : "left"}/><EditorIcon name="chevron"/></button>
-          {openMenu === "alignment" && <div className={styles.menu} style={{ left: menuLeft }} role="menu" aria-label={`${label} 정렬 및 들여쓰기`}>
+          <button ref={alignTrigger} type="button" className={styles.menuTrigger} aria-label={`${label} 정렬 메뉴`} title="정렬" aria-haspopup="menu" aria-expanded={openMenu === "alignment"} disabled={inactive} onMouseDown={preventFocus} onClick={() => toggleMenu("alignment")}><EditorIcon name={selected?.align === "center" ? "center" : selected?.align === "right" ? "right" : selected?.align === "justify" ? "justify" : "left"}/><EditorIcon name="chevron"/></button>
+          {openMenu === "alignment" && <div className={styles.menu} style={{ left: menuLeft }} role="menu" aria-label={`${label} 정렬 옵션`}>
             <div className={styles.alignmentChoices} role="group" aria-label="정렬">
               {([{ value: "left", text: "왼쪽 정렬" }, { value: "center", text: "가운데 정렬" }, { value: "right", text: "오른쪽 정렬" }, { value: "justify", text: "양쪽 정렬" }] as const).map(option => <button key={option.value} type="button" role="menuitemradio" aria-label={`${label} ${option.text}`} title={option.text} aria-checked={selected?.align === option.value} onMouseDown={preventFocus} onClick={() => { chain()?.setTextAlign(option.value).run(); setOpenMenu(null); }}><EditorIcon name={option.value}/></button>)}
             </div>
-            <div className={styles.menuDivider}/>
-            <button type="button" role="menuitem" aria-label={`${label} 내어쓰기`} onMouseDown={preventFocus} onClick={() => indent(-1)}><EditorIcon name="outdent"/><span>내어쓰기</span></button>
-            <button type="button" role="menuitem" aria-label={`${label} 들여쓰기`} onMouseDown={preventFocus} onClick={() => indent(1)}><EditorIcon name="indent"/><span>들여쓰기</span></button>
           </div>}
         </div>
         <div className={styles.dropdown}>
@@ -194,6 +191,10 @@ export default function RichTextEditor({ label, name, value, document, onChange,
       <div className={styles.group}>
         <button type="button" aria-label={`${label} 글머리표 목록`} title="글머리표 목록" aria-pressed={selected?.bullet ?? false} disabled={inactive} onMouseDown={preventFocus} onClick={() => chain()?.toggleBulletList().run()}><EditorIcon name="bullet"/></button>
         <button type="button" aria-label={`${label} 번호 목록`} title="번호 목록" aria-pressed={selected?.ordered ?? false} disabled={inactive} onMouseDown={preventFocus} onClick={() => chain()?.toggleOrderedList().run()}><EditorIcon name="numbered"/></button>
+      </div>
+      <div className={styles.group}>
+        <button type="button" aria-label={`${label} 내어쓰기`} title="내어쓰기" disabled={inactive} onMouseDown={preventFocus} onClick={() => indent(-1)}><EditorIcon name="outdent"/></button>
+        <button type="button" aria-label={`${label} 들여쓰기`} title="들여쓰기" disabled={inactive} onMouseDown={preventFocus} onClick={() => indent(1)}><EditorIcon name="indent"/></button>
       </div>
       <div className={styles.group}>
         <button type="button" aria-label={`${label} 실행 취소`} title="실행 취소" disabled={inactive || !selected?.undo} onMouseDown={preventFocus} onClick={() => chain()?.undo().run()}><EditorIcon name="undo"/></button>
