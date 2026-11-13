@@ -15,7 +15,11 @@ export async function saveContent(_previous: SaveState, form: FormData): Promise
   try { result = await saveManagedContent(getDatabase(), admin.id, JSON.parse(json)); }
   catch(error) {
     if (error instanceof ContentManagementError) return {message:error.message};
-    if (error instanceof z.ZodError) return {message:"필수 항목과 입력 형식을 확인해 주세요. 본문과 각 문단의 내용을 입력해야 합니다."};
+    if (error instanceof z.ZodError) {
+      const websiteIssue=error.issues.find(issue=>issue.path[0]==="websites"||issue.path[0]==="website");
+      if(websiteIssue) return {message:`웹사이트${typeof websiteIssue.path[1]==="number"?` ${websiteIssue.path[1]+1}`:""} 주소를 확인해 주세요. example.com 또는 https://example.com 형식으로 입력해 주세요.`};
+      return {message:"필수 항목과 입력 형식을 확인해 주세요. 본문과 각 문단의 내용을 입력해야 합니다."};
+    }
     if (error instanceof SyntaxError) return {message:"입력 내용을 확인해 주세요."};
     console.error("Content save failed. Check database migrations and connectivity.");
     return {message:"저장하지 못했습니다. 작성 내용은 유지됩니다. 잠시 후 다시 시도해 주세요."};
