@@ -42,7 +42,7 @@
 
 .footer img { display: block; width: 160px; height: 42px; }
 
-.cardLink { display: flex; justify-content: space-between; gap: 16px; border-top: 1px solid var(--brass); padding-top: 18px; margin-top: 24px; font-size: 15px; }
+.cardLink { display: flex; justify-content: space-between; gap: 16px; border-top: 1px solid var(--brass); padding-top: 18px; margin-top: 24px; font-size: 15px; font-weight: 700; }
 .cardLink:hover { color: var(--terracotta-deep); }
 .cardLink:focus-visible, .back:focus-visible { outline: 2px solid var(--terracotta-deep); outline-offset: 5px; }
 .detail { max-width: 840px; }
@@ -59,10 +59,9 @@
 .sectionNumber { color: var(--terracotta-deep); font-size: 14px; font-weight: 600; letter-spacing: .08em; margin: 0 0 6px; }
 .sectionTitle { color: var(--terracotta-deep); font-size: 18px; font-weight: 500; line-height: 1.65; margin: 0 0 16px; }
 .sectionBody { color: var(--ink); line-height: 1.95; word-break: keep-all; }
-.highlight { color: var(--ink); display: inline-block; max-width: 100%; background: var(--sage); border-radius: 24px; padding: 8px 18px; font-size: 17px; line-height: 1.7; }
 .joinBox { margin-top: 24px; border-radius: 14px; padding: clamp(24px, 4vw, 36px); background: var(--sage); font-size: 18px; line-height: 1.9; overflow-wrap: anywhere; }
 .joinBox h2 { color: var(--terracotta-deep); font-size: 16px; font-weight: 500; letter-spacing: .04em; margin: 0 0 20px; }
 .joinButton { display: inline-block; border-radius: 2px; padding: 12px 24px; margin-top: 24px; color: var(--cream); background: var(--ink); font-size: 16px; }
 .joinButton:hover { background: var(--terracotta-deep); }
 .joinButton:focus-visible { outline: 2px solid var(--terracotta-deep); outline-offset: 4px; }
-@media (max-width: 600px) { .detail { padding-inline: 16px; } .detailHeader { padding-top: 0; } .detailBody, .joinBox { font-size: 16px; } .reviewSection { padding-block: 28px; } .highlight { font-size: 15px; } }
+@media (max-width: 600px) { .detail { padding-inline: 16px; } .detailHeader { padding-top: 0; } .detailBody, .joinBox { font-size: 16px; } .reviewSection { padding-block: 28px; } }

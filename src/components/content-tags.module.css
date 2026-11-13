@@ -1,0 +1,2 @@
+.tags { display: flex; flex-wrap: wrap; gap: 10px; list-style: none; padding: 0; margin: 1em 0; }
+.tags li { max-width: 100%; padding: 9px 14px; border-radius: 24px; background: var(--sage); color: var(--ink); font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }

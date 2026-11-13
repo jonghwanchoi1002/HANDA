@@ -40,8 +40,6 @@
 .bio h2 { font-size: 20px; }
 .websites { list-style: none; margin: 0; padding: 0; overflow-wrap: anywhere; }
 .bio p { font-size: 15px; color: var(--muted); line-height: 1.9; word-break: keep-all; }
-.tags { display: flex; flex-wrap: wrap; gap: 10px; list-style: none; padding: 0; }
-.tags li { padding: 9px 14px; border-radius: 24px; background: var(--sage); color: var(--ink); font-size: 13px; }
 .end { border-top: 1px solid var(--border); margin-top: 55px; padding-top: 22px; }
 .empty { text-align: center; border: 1px dashed var(--control-border); padding: 65px 24px; border-radius: 8px; }
 .empty p { color: var(--muted); line-height: 1.9; }

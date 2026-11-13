@@ -7,6 +7,12 @@ import { normalizeMemberWebsite } from "./member-websites";
 const text = z.string().trim().min(1);
 const webUrl = z.url().refine((url) => /^https?:\/\//i.test(url), "HTTP(S) URL required");
 const memberWebsite = z.preprocess(normalizeMemberWebsite, webUrl);
+const memberWebsiteEntry = z.union([memberWebsite, z.object({ name: z.string().trim().max(200).default(""), url: memberWebsite })]);
+const memberWebsites = z.preprocess(value => Array.isArray(value) ? value.filter(item => {
+  if (typeof item === "string") return Boolean(item.trim());
+  if (item && typeof item === "object" && "url" in item && typeof item.url === "string") return Boolean(item.url.trim());
+  return true;
+}) : value, z.array(memberWebsiteEntry));
 const imageUrl = z.string().refine((url) => url.startsWith("/") && !url.startsWith("//") || webUrl.safeParse(url).success, "Image URL required");
 const slug = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
 const photo = z.object({ url: imageUrl, alt: text, width: z.number().int().positive(), height: z.number().int().positive() });
@@ -25,7 +31,7 @@ export const testimonialSectionsSchema = z.array(z.object({
 })).min(1).max(30);
 export const contentSchemas = {
   wiki: z.object({ richText:richTextMapSchema.optional(), photos: z.array(photo).max(10).optional(), slug, title: text, category: text, summary: text, isExample: z.boolean(), sections: z.array(z.object({ title: text, paragraphs: z.array(text).min(1), titleRichText:richTextDocumentSchema.optional(), bodyRichText:richTextDocumentSchema.optional() })).min(1) }),
-  member: z.object({ richText:richTextMapSchema.optional(), slug, name: text, field: text, role: text, summary: text, introduction: z.array(text).min(1), interests: z.array(text), website: memberWebsite.nullable().default(null), websites: z.preprocess(value => Array.isArray(value) ? value.filter(item => typeof item !== "string" || item.trim()) : value, z.array(memberWebsite)).optional(), photoUrl: imageUrl.nullable(), isExample: z.boolean() }),
+  member: z.object({ richText:richTextMapSchema.optional(), slug, name: text, field: text, role: text, summary: text, introduction: z.array(text).min(1), interests: z.array(text), website: memberWebsite.nullable().default(null), websites: memberWebsites.optional(), photoUrl: imageUrl.nullable(), isExample: z.boolean() }),
   story: z.object({ richText:richTextMapSchema.optional(), slug, title: text, summary: text, eventDate: z.iso.date(), location: text, cover: storyImage.nullable(), blocks: z.array(block).min(1).refine((blocks) => new Set(blocks.map((item) => item.id)).size === blocks.length, "Block IDs must be unique"), isExample: z.boolean() }),
   testimonial: z.object({ richText:richTextMapSchema.optional(), id: slug, name: text, introduction: text, quote: text, body: z.string().trim().max(30000).optional(), sections:testimonialSectionsSchema.optional(),
     closingTitle:z.string().trim().default(testimonialClosingDefaults.closingTitle),closingBody:z.string().trim().default(testimonialClosingDefaults.closingBody),
@@ -53,7 +59,10 @@ export function parseContent<K extends ContentKind>(kind: K, value: unknown): Co
   const payload=contentSchemas[kind].parse(value) as ContentMap[K];
   if (kind === "member") {
     const member = payload as ContentMap["member"];
-    if (member.websites !== undefined) member.website = member.websites[0] ?? null;
+    if (member.websites !== undefined) {
+      const first = member.websites[0];
+      member.website = typeof first === "string" ? first : first?.url ?? null;
+    }
   }
   for(const [key,doc] of Object.entries(payload.richText??{})){
     const plain=(payload as Record<string,unknown>)[key];

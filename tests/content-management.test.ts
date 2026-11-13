@@ -35,6 +35,11 @@ test("member websites create, reload, update and clear without a database migrat
     member=(await readPublishedContent(c.query,"member"))[0];
     assert.deepEqual(member.websites,[]);
     assert.equal(member.website,null);
+    const named=Array.from({length:12},(_,i)=>({name:i===0?"회사 홈페이지":"",url:`https://site${i}.example.com`}));
+    await saveManagedContent(c.pool,"admin",{...entry,revision:3,payload:{...member,websites:named}});
+    member=(await readPublishedContent(c.query,"member"))[0];
+    assert.deepEqual(member.websites,named);
+    assert.equal(member.website,"https://site0.example.com");
   }finally{await c.close();}
 });
 
