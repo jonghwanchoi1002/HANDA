@@ -16,6 +16,7 @@ export default function AuthForm({ emailEnabled, googleEnabled }: { emailEnabled
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [signupComplete, setSignupComplete] = useState(false);
+  const passwordTooShort = mode === "signup" && password.length > 0 && password.length < 12;
   const passwordMismatch = mode === "signup" && confirmation.length > 0 && password !== confirmation;
   function changeMode(value: Mode) { setMode(value); setMessage(""); setFailed(false); setPassword(""); setConfirmation(""); }
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -23,6 +24,10 @@ export default function AuthForm({ emailEnabled, googleEnabled }: { emailEnabled
     const form = new FormData(event.currentTarget);
     const email = String(form.get("email") ?? "").trim();
     const password = String(form.get("password") ?? "");
+    if (mode === "signup" && password.length < 12) {
+      event.currentTarget.querySelector<HTMLInputElement>('[name="password"]')?.focus();
+      return;
+    }
     if (mode === "signup" && password !== String(form.get("confirmPassword") ?? "")) {
       event.currentTarget.querySelector<HTMLInputElement>('[name="confirmPassword"]')?.focus();
       return;
@@ -59,21 +64,19 @@ export default function AuthForm({ emailEnabled, googleEnabled }: { emailEnabled
   }
   return <div className={styles.box}>
     <div className={styles.tabs} role="group" aria-label="로그인 또는 가입 선택"><button type="button" aria-pressed={mode === "login"} disabled={busy} onClick={() => changeMode("login")}>로그인</button><button type="button" aria-pressed={mode === "signup"} disabled={busy} onClick={() => changeMode("signup")}>회원가입</button></div>
-    {mode === "signup" && <p className={styles.help}>이메일 확인과 관리자 승인이 필요합니다. 가입만으로 위키가 공개되지는 않습니다.</p>}
     {mode === "reset" && <h2>비밀번호 재설정 메일 받기</h2>}{mode === "verify" && <h2>이메일 확인 메일 다시 받기</h2>}
     <form onSubmit={submit} className={styles.form}>
       {mode === "signup" && <label>이름<input name="name" autoComplete="name" required maxLength={100} disabled={!emailEnabled || busy} /></label>}
       <label>이메일<input name="email" type="email" autoComplete="email" required maxLength={254} disabled={!emailEnabled || busy} /></label>
-      {(mode === "login" || mode === "signup") && <PasswordInput key={mode} label="비밀번호" name="password" autoComplete={mode === "signup" ? "new-password" : "current-password"} value={password} onChange={event=>setPassword(event.target.value)} required minLength={mode === "signup" ? 12 : undefined} maxLength={128} disabled={!emailEnabled || busy}/>}
-      {mode === "signup" && <p className={styles.help}>비밀번호는 12자 이상 입력하세요. 다른 사이트와 다른 비밀번호를 사용해 주세요.</p>}
+      {(mode === "login" || mode === "signup") && <PasswordInput key={mode} label="비밀번호" name="password" autoComplete={mode === "signup" ? "new-password" : "current-password"} value={password} onChange={event=>setPassword(event.target.value)} required minLength={mode === "signup" ? 12 : undefined} maxLength={128} error={passwordTooShort?"비밀번호는 12자 이상 입력해 주세요.":undefined} onInvalid={event=>{if(event.currentTarget.validity.tooShort){event.preventDefault();event.currentTarget.focus();}}} disabled={!emailEnabled || busy}/>}
       {mode === "signup" && <PasswordInput label="비밀번호 확인" name="confirmPassword" autoComplete="new-password" value={confirmation} onChange={event=>setConfirmation(event.target.value)} required maxLength={128} error={passwordMismatch?"비밀번호가 일치하지 않습니다.":undefined} disabled={!emailEnabled || busy}/>}
       <button className={`${styles.button} ${styles.primary}`} disabled={!emailEnabled || busy}>{busy ? "처리 중…" : mode === "login" ? "이메일로 로그인" : mode === "signup" ? "가입 신청" : "메일 보내기"}</button>
+      {message && <p role={failed ? "alert" : "status"} className={`${styles.message} ${styles.formMessage} ${failed ? styles.error : ""}`}>{message}</p>}
     </form>
     {!emailEnabled && <p className={styles.help}>이메일 로그인과 가입을 준비하고 있습니다.</p>}
     <div className={styles.secondary}><button type="button" disabled={busy} onClick={() => changeMode("reset")}>비밀번호를 잊으셨나요?</button><button type="button" disabled={busy} onClick={() => changeMode("verify")}>이메일 확인 메일 다시 받기</button></div>
     <button type="button" className={`${styles.button} ${styles.google}`} disabled={!googleEnabled || busy} onClick={googleSignIn}>Google로 계속하기</button>
     {!googleEnabled && <p className={styles.help}>Google 로그인을 준비하고 있습니다.</p>}
-    {message && <p role={failed ? "alert" : "status"} className={`${styles.message} ${failed ? styles.error : ""}`}>{message}</p>}
     <SignupCompleteDialog open={signupComplete} onLogin={()=>{setSignupComplete(false);changeMode("login");}} onHome={()=>{setSignupComplete(false);router.replace("/");}}/>
   </div>;
 }

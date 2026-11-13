@@ -26,6 +26,7 @@
 @media (max-width: 420px) { .signupDialog .signupDialogControls { display: grid; grid-template-columns: 1fr; } }
 .help { font-size: 12px; color: var(--muted); line-height: 1.8; }
 .message { padding: 16px; background: var(--sage); color: var(--ink); font-size: 14px; line-height: 1.8; margin: 22px 0; overflow-wrap: anywhere; }
+.formMessage { margin: 0; }
 .error { background: var(--error-surface); color: var(--terracotta-deep); }
 .secondary { display: flex; gap: 18px; flex-wrap: wrap; margin: 22px 0; }
 .secondary button { background: none; border: 0; color: var(--terracotta-deep); font: inherit; font-size: 12px; text-decoration: underline; cursor: pointer; padding: 4px 0; }
