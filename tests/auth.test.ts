@@ -45,10 +45,23 @@ test("real auth handler: verify email, sign in, admin approval/revocation, reset
     const password="correct-horse-battery-test-123";
     const signup=await request("/sign-up/email",{email:"member@example.test",password,name:"테스트 회원",role:"admin",approvalStatus:"approved",callbackURL:"/login?verified=1"});
     assert.equal(signup.status,200,await signup.text());
+    const assertDuplicate=async(email:string)=>{
+      const sent=mail.length;
+      const duplicate=await request("/sign-up/email",{email,password,name:"중복 가입"});
+      assert.equal(duplicate.status,409);
+      assert.equal((await duplicate.json()).code,"USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL");
+      assert.equal(mail.length,sent);
+    };
+    await assertDuplicate("member@example.test");
     assert.equal((await membership("member@example.test")).role,"member");assert.equal((await membership("member@example.test")).approvalStatus,"pending");
     const hash=(await pool.query(`SELECT password FROM handa_auth_account WHERE "providerId"='credential'`)).rows[0].password;assert.notEqual(hash,password);assert.ok(hash.length>64);
     const unverified=await request("/sign-in/email",{email:"member@example.test",password});assert.equal(unverified.status,403);
     await verify("member@example.test");
+    await assertDuplicate("MEMBER@example.test");
+    await pool.query(`INSERT INTO handa_auth_user(id,name,email,"emailVerified") VALUES('google-only','Google 회원','google-only@example.test',true)`);
+    await pool.query(`INSERT INTO handa_auth_account(id,"accountId","providerId","userId","updatedAt") VALUES('google-only-account','google-fixture','google','google-only',now())`);
+    await assertDuplicate("google-only@example.test");
+    assert.equal((await pool.query("SELECT count(*)::int AS count FROM handa_auth_user WHERE lower(email)='member@example.test'")).rows[0].count,1);
     const signin=await request("/sign-in/email",{email:"member@example.test",password});assert.equal(signin.status,200);const cookie=cookies(signin);assert.ok(cookie.includes("session_token"));
     const session=await request("/get-session",undefined,cookie);assert.equal((await session.json()).user.email,"member@example.test");
     const member=await membership("member@example.test");assert.equal(canReadWiki(member),false);

@@ -4,6 +4,7 @@ import { getAccountProfile } from "./account-profile";
 import { canReadWiki } from "./permissions";
 import { betterAuth, type BetterAuthOptions } from "better-auth";
 import type { Pool } from "pg";
+import { findEmailAccount, normalizeEmailAddress, resolveGoogleEmail } from "./email-address";
 
 export type AuthMail = { to: string; subject: string; text: string };
 export type AuthSettings = {
@@ -37,6 +38,18 @@ ${url}`});
       },
     },
     hooks:{before:createAuthMiddleware(async(ctx)=>{
+      if(ctx.path==="/sign-up/email"&&settings.sendMail&&typeof ctx.body?.email==="string"){
+        const existing=await findEmailAccount(settings.database,ctx.body.email);
+        if(existing)throw new APIError("CONFLICT",{code:"USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL",message:"이미 가입된 이메일 주소입니다."});
+        ctx.body.email=normalizeEmailAddress(ctx.body.email);
+      }
+      if(["/sign-in/email","/request-password-reset","/send-verification-email"].includes(ctx.path)&&typeof ctx.body?.email==="string"){
+        ctx.body.email=(await findEmailAccount(settings.database,ctx.body.email))?.email??normalizeEmailAddress(ctx.body.email);
+      }
+      if(ctx.path==="/change-email"&&typeof ctx.body?.newEmail==="string"){
+        if(await findEmailAccount(settings.database,ctx.body.newEmail))throw new APIError("CONFLICT",{code:"USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL",message:"이미 가입된 이메일 주소입니다."});
+        ctx.body.newEmail=normalizeEmailAddress(ctx.body.newEmail);
+      }
       if(!["/update-user","/change-email","/change-password","/set-password"].includes(ctx.path))return;
       const session=await getSessionFromCtx(ctx);if(!session)throw new APIError("UNAUTHORIZED",{message:"로그인이 필요합니다."});
       const profile=await getAccountProfile(settings.database,session.user.id);
@@ -67,7 +80,10 @@ ${url}`});
         await settings.sendMail({ to: user.email, subject: "HANDA 이메일 주소 확인", text: `아래 링크를 열어 이메일 주소를 확인해 주세요. 비즈니스 위키는 관리자 승인을 마친 회원만 이용할 수 있습니다.\n\n${url}` });
       },
     },
-    socialProviders: settings.google ? { google: { ...settings.google, prompt: "select_account" } } : {},
+    databaseHooks: { user: { create: { before: async user => {
+      return { data: { ...user, email: normalizeEmailAddress(user.email) } };
+    } } } },
+    socialProviders: settings.google ? { google: { ...settings.google, prompt: "select_account", mapProfileToUser: async profile => ({ email: await resolveGoogleEmail(settings.database,profile) }) } } : {},
     advanced: { ...(settings.backgroundTask ? { backgroundTasks: { handler: settings.backgroundTask } } : {}) },
     logger: { disabled: true },
   } satisfies BetterAuthOptions;
