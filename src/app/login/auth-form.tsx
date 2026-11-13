@@ -3,6 +3,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { authClient } from "@/lib/auth/client";
 import styles from "./auth.module.css";
+import PasswordInput from "@/components/password-input";
+import SignupCompleteDialog from "@/components/signup-complete-dialog";
 
 type Mode = "login" | "signup" | "reset" | "verify";
 export default function AuthForm({ emailEnabled, googleEnabled }: { emailEnabled: boolean; googleEnabled: boolean }) {
@@ -11,12 +13,20 @@ export default function AuthForm({ emailEnabled, googleEnabled }: { emailEnabled
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [failed, setFailed] = useState(false);
-  function changeMode(value: Mode) { setMode(value); setMessage(""); setFailed(false); }
+  const [password, setPassword] = useState("");
+  const [confirmation, setConfirmation] = useState("");
+  const [signupComplete, setSignupComplete] = useState(false);
+  const passwordMismatch = mode === "signup" && confirmation.length > 0 && password !== confirmation;
+  function changeMode(value: Mode) { setMode(value); setMessage(""); setFailed(false); setPassword(""); setConfirmation(""); }
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); if (busy) return;
     const form = new FormData(event.currentTarget);
     const email = String(form.get("email") ?? "").trim();
     const password = String(form.get("password") ?? "");
+    if (mode === "signup" && password !== String(form.get("confirmPassword") ?? "")) {
+      event.currentTarget.querySelector<HTMLInputElement>('[name="confirmPassword"]')?.focus();
+      return;
+    }
     setBusy(true); setMessage(""); setFailed(false);
     try {
       if (mode === "login") {
@@ -26,7 +36,8 @@ export default function AuthForm({ emailEnabled, googleEnabled }: { emailEnabled
       } else if (mode === "signup") {
         const result = await authClient.signUp.email({ name: String(form.get("name") ?? "").trim(), email, password, callbackURL: "/login?verified=1" });
         if (result.error) throw new Error("가입 요청을 처리하지 못했습니다. 입력 내용을 확인하고 잠시 후 다시 시도해 주세요.");
-        setMessage("가입 가능한 주소라면 확인 메일을 보냈습니다. 이메일 확인 후 로그인해 주세요. 위키 이용에는 관리자 승인이 필요합니다.");
+        changeMode("login");
+        setSignupComplete(true);
       } else if (mode === "reset") {
         const result = await authClient.requestPasswordReset({ email, redirectTo: "/reset-password" });
         if (result.error) throw new Error("메일 요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.");
@@ -53,8 +64,9 @@ export default function AuthForm({ emailEnabled, googleEnabled }: { emailEnabled
     <form onSubmit={submit} className={styles.form}>
       {mode === "signup" && <label>이름<input name="name" autoComplete="name" required maxLength={100} disabled={!emailEnabled || busy} /></label>}
       <label>이메일<input name="email" type="email" autoComplete="email" required maxLength={254} disabled={!emailEnabled || busy} /></label>
-      {(mode === "login" || mode === "signup") && <label>비밀번호<input name="password" type="password" autoComplete={mode === "signup" ? "new-password" : "current-password"} required minLength={mode === "signup" ? 12 : undefined} maxLength={128} disabled={!emailEnabled || busy} /></label>}
+      {(mode === "login" || mode === "signup") && <PasswordInput key={mode} label="비밀번호" name="password" autoComplete={mode === "signup" ? "new-password" : "current-password"} value={password} onChange={event=>setPassword(event.target.value)} required minLength={mode === "signup" ? 12 : undefined} maxLength={128} disabled={!emailEnabled || busy}/>}
       {mode === "signup" && <p className={styles.help}>비밀번호는 12자 이상 입력하세요. 다른 사이트와 다른 비밀번호를 사용해 주세요.</p>}
+      {mode === "signup" && <PasswordInput label="비밀번호 확인" name="confirmPassword" autoComplete="new-password" value={confirmation} onChange={event=>setConfirmation(event.target.value)} required maxLength={128} error={passwordMismatch?"비밀번호가 일치하지 않습니다.":undefined} disabled={!emailEnabled || busy}/>}
       <button className={`${styles.button} ${styles.primary}`} disabled={!emailEnabled || busy}>{busy ? "처리 중…" : mode === "login" ? "이메일로 로그인" : mode === "signup" ? "가입 신청" : "메일 보내기"}</button>
     </form>
     {!emailEnabled && <p className={styles.help}>이메일 로그인과 가입을 준비하고 있습니다.</p>}
@@ -62,5 +74,6 @@ export default function AuthForm({ emailEnabled, googleEnabled }: { emailEnabled
     <button type="button" className={`${styles.button} ${styles.google}`} disabled={!googleEnabled || busy} onClick={googleSignIn}>Google로 계속하기</button>
     {!googleEnabled && <p className={styles.help}>Google 로그인을 준비하고 있습니다.</p>}
     {message && <p role={failed ? "alert" : "status"} className={`${styles.message} ${failed ? styles.error : ""}`}>{message}</p>}
+    <SignupCompleteDialog open={signupComplete} onLogin={()=>{setSignupComplete(false);changeMode("login");}} onHome={()=>{setSignupComplete(false);router.replace("/");}}/>
   </div>;
 }

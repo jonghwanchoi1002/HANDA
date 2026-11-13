@@ -13,6 +13,17 @@
 .form label { display: grid; gap: 8px; font-size: 14px; }
 .form input { width: 100%; border: 1px solid var(--control-border); padding: 12px 14px; border-radius: 4px; background: var(--cream); color: var(--ink); font: inherit; }
 .form input:focus-visible, .button:focus-visible, .tabs button:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.passwordField { display: grid; gap: 8px; min-width: 0; }
+.passwordControl { position: relative; }
+.passwordControl input { padding-right: 54px; }
+.passwordToggle { position: absolute; right: 3px; top: 50%; transform: translateY(-50%); display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 3px; background: transparent; color: var(--muted); cursor: pointer; }
+.passwordToggle:hover { color: var(--terracotta-deep); }
+.passwordToggle:disabled { opacity: .55; cursor: not-allowed; }
+.fieldError { margin: 0; font-size: 13px; line-height: 1.6; color: color-mix(in srgb, var(--logo-red) 76%, var(--ink)); }
+.passwordControl input[aria-invalid="true"] { border-color: color-mix(in srgb, var(--logo-red) 76%, var(--ink)); }
+.signupDialog { width: min(480px, calc(100% - 40px)); }
+.signupDialog .signupDialogControls { flex-wrap: wrap; }
+@media (max-width: 420px) { .signupDialog .signupDialogControls { display: grid; grid-template-columns: 1fr; } }
 .help { font-size: 12px; color: var(--muted); line-height: 1.8; }
 .message { padding: 16px; background: var(--sage); color: var(--ink); font-size: 14px; line-height: 1.8; margin: 22px 0; overflow-wrap: anywhere; }
 .error { background: var(--error-surface); color: var(--terracotta-deep); }
