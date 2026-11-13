@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "test:email": "tsx --test tests/email-address.test.ts",
     "test:mail": "tsx --test tests/auth-mail.test.ts",
     "dev": "next dev",
     "build": "next build",
