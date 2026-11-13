@@ -30,7 +30,7 @@ export default async function TestimonialsPage() {
           <Link className={styles.cardLink} href={`/testimonials/${item.id}`} aria-label={`${item.name}님의 후기 보기`}>후기 보기 <span aria-hidden="true">↗</span></Link>
         </article>)}</div> : <div className={styles.empty}><h3>첫 번째 이야기를 기다립니다.</h3><p>공개된 멤버 후기가 등록되면 이곳에서 만나보실 수 있습니다.</p></div>}
       </section>
-      <section className={styles.invitation}><p className={styles.eyebrow}>GET TO KNOW HANDA</p><h2>이야기 너머의 사람과 순간들.</h2><p>HANDA의 멤버와 모임 기록도 함께 살펴보세요.</p><div><Link href="/members">멤버 만나보기 ↗</Link><Link href="/stories">모임 후기 읽기 ↗</Link></div></section>
+      <section className={styles.invitation}><p className={styles.eyebrow}>GET TO KNOW HANDA</p><h2>이야기 너머의 사람과 순간들.</h2><p>HANDA의 멤버와 정기모임 기록도 함께 살펴보세요.</p><div><Link href="/members">멤버 만나보기 ↗</Link><Link href="/stories">정기모임 후기 읽기 ↗</Link></div></section>
     </main>
     <footer className={styles.footer}><Link href="/" aria-label="HANDA 홈"><Image src="/brand/handa-logo-cream.svg" alt="HANDA · Berlin Founders Community" width={160} height={42}/></Link><span>시작하고, 함께 성장합니다.</span><span>© 2026 HANDA</span></footer>
   </div>;
