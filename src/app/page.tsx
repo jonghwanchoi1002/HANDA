@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import HomeHeroPhoto from "@/components/home-hero-photo";
 import { ContentText } from "@/components/rich-text";
 import Image from "next/image";
 import Link from "next/link";
@@ -18,7 +20,7 @@ export default async function Home() {
     <a href="#main" className={styles.skip}>본문으로 바로가기</a>
     <main id="main">
       <section className={styles.hero} aria-labelledby="hero-title">
-        {homeMainPhoto && <Image className={styles.heroPhoto} src={homeMainPhoto} alt="베를린 카페에서 함께 이야기를 나누는 HANDA 멤버들" fill sizes="100vw" priority/>}
+        <Suspense fallback={null}><HomeHeroPhoto home={home}/></Suspense>
         <div className={styles.heroShade} aria-hidden="true"/>
         <div className={`${styles.wrap} ${styles.heroContent}`}>
           <p className={styles.heroEyebrow}>Berlin Founders Community</p>

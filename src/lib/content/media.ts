@@ -20,7 +20,7 @@ export async function normalizeImage(bytes:Buffer) {
   }catch {throw new MediaError("JPG, PNG, WebP 사진 파일을 선택해 주세요.");}
 }
 export async function uploadImage(db:Pool,store:ImageStore,actorId:string,input:{kind:string;key:string;alt:string;bytes:Buffer}) {
-  if(!["wiki","member","story","testimonial"].includes(input.kind)|| !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(input.key)||input.key.length>100||!input.alt.trim()||input.alt.length>300)throw new MediaError("사진 설명과 첨부할 글을 확인해 주세요.");
+  if(!["home","wiki","member","story","testimonial"].includes(input.kind)|| !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(input.key)||input.key.length>100||(input.kind==="home"&&input.key!=="homepage")||!input.alt.trim()||input.alt.length>300)throw new MediaError("사진 설명과 첨부할 글을 확인해 주세요.");
   const image=await normalizeImage(input.bytes);
   const client=await db.connect();let pathname:string|undefined;
   try {
