@@ -35,7 +35,7 @@ export default function AuthForm({ emailEnabled, googleEnabled }: { emailEnabled
         router.replace("/"); router.refresh();
       } else if (mode === "signup") {
         const result = await authClient.signUp.email({ name: String(form.get("name") ?? "").trim(), email, password, callbackURL: "/login?verified=1" });
-        if (result.error) throw new Error("가입 요청을 처리하지 못했습니다. 입력 내용을 확인하고 잠시 후 다시 시도해 주세요.");
+        if (result.error) throw new Error(result.error.code==="USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL"?"이미 가입된 이메일 주소입니다. 로그인해 주세요. 비밀번호를 잊으셨다면 아래에서 재설정할 수 있습니다.":"가입 요청을 처리하지 못했습니다. 입력 내용을 확인하고 잠시 후 다시 시도해 주세요.");
         changeMode("login");
         setSignupComplete(true);
       } else if (mode === "reset") {

@@ -37,6 +37,10 @@ ${url}`});
       },
     },
     hooks:{before:createAuthMiddleware(async(ctx)=>{
+      if(ctx.path==="/sign-up/email"&&settings.sendMail&&typeof ctx.body?.email==="string"){
+        const existing=await settings.database.query("SELECT id FROM handa_auth_user WHERE lower(email)=lower($1) LIMIT 1",[ctx.body.email.trim()]);
+        if(existing.rows.length)throw new APIError("CONFLICT",{code:"USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL",message:"이미 가입된 이메일 주소입니다."});
+      }
       if(!["/update-user","/change-email","/change-password","/set-password"].includes(ctx.path))return;
       const session=await getSessionFromCtx(ctx);if(!session)throw new APIError("UNAUTHORIZED",{message:"로그인이 필요합니다."});
       const profile=await getAccountProfile(settings.database,session.user.id);
