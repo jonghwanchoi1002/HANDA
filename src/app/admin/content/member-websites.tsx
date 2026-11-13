@@ -5,7 +5,7 @@ import styles from "./content.module.css";
 import type { MemberWebsiteLink } from "@/lib/content/member-websites";
 
 export default function MemberWebsites({ values, onChange }: { values: MemberWebsiteLink[]; onChange: (values: MemberWebsiteLink[]) => void }) {
-  return <div className={styles.group}>
+  return <div className={styles.memberFields}>
     <p className={styles.help}>이름과 주소는 모두 선택 사항입니다. 이름을 비우면 주소가 표시되며, 주소가 없는 항목은 저장하지 않습니다. example.com처럼 입력해도 저장됩니다.</p>
     {values.map((value, index) => <div key={index} className={styles.websiteRow}>
       <div className={styles.websiteFields}>

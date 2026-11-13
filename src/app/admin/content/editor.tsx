@@ -6,7 +6,7 @@ import LeaveDialog from "@/components/leave-dialog";
 import type { ContentStatus } from "@/lib/content/status";
 import PhotoPicker, { type Photo } from "@/components/photo-picker";
 import { saveWiki } from "@/app/wiki/actions";
-import { Fragment, useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getTestimonialSections } from "@/lib/content/testimonial-sections";
@@ -16,6 +16,7 @@ import type { ContentMap } from "@/lib/content/schema";
 import { saveContent, type SaveState } from "./actions";
 import common from "@/app/login/auth.module.css";
 import styles from "./content.module.css";
+import { getHomePhotos } from "@/lib/content/home-photos";
 import MemberWebsites from "./member-websites";
 import MemberCohortsEditor from "./member-cohorts";
 import { getMemberCohorts, memberCohortFields, type MemberCohort } from "@/lib/content/member-cohorts";
@@ -40,7 +41,10 @@ function ContentEditorForm({entry: initialEntry,mode="admin",uploadsEnabled=fals
     const existing=getMemberWebsiteLinks(entry.payload);
     return existing.length?existing:[{name:"",url:""}];
   });
+  const [heroPhotoMode,setHeroPhotoMode]=useState<"fixed"|"random">((entry.payload.heroPhotoMode as "fixed"|"random")??"fixed");
+  const [heroPhotoUrl,setHeroPhotoUrl]=useState(String(entry.payload.heroPhotoUrl??getHomePhotos(entry.payload as ContentMap["home"])[0].url));
   const [photos,setPhotos]=useState<Photo[]>(()=>{
+    if(entry.kind==="home")return getHomePhotos(entry.payload as ContentMap["home"]);
     if(entry.kind==="wiki")return (entry.payload.photos as Photo[]|undefined)??[];
     if(entry.kind==="member")return entry.payload.photoUrl?[{url:String(entry.payload.photoUrl),alt:`${entry.payload.name} 프로필 사진`,width:600,height:600}]:[];
     if(entry.kind==="testimonial")return entry.payload.photo?[entry.payload.photo as Photo]:[];
@@ -63,10 +67,11 @@ function ContentEditorForm({entry: initialEntry,mode="admin",uploadsEnabled=fals
   });
   const [blocks,setBlocks]=useState<Block[]>(()=>entry.payload.blocks as Block[] ?? []);
   const [dirty,setDirty]=useState(false);
-  const savedSnapshot=useRef({values,richText,status,order,example,consent,sections,blocks,photos,websites,cohorts});
+  const savedSnapshot=useRef({values,richText,status,order,example,consent,sections,blocks,photos,websites,cohorts,heroPhotoMode,heroPhotoUrl});
   function discardAndGo(){
     const saved=savedSnapshot.current;
     setWebsites(saved.websites);setCohorts(saved.cohorts);
+    setHeroPhotoMode(saved.heroPhotoMode);setHeroPhotoUrl(saved.heroPhotoUrl);
     setValues(saved.values);setRichText(saved.richText);setStatus(saved.status);setOrder(saved.order);setExample(saved.example);setConsent(saved.consent);setSections(saved.sections);setBlocks(saved.blocks);setPhotos(saved.photos);
     const target=leaveTarget!;setDirty(false);setLeaveTarget(null);router.push(target);
   }
@@ -91,6 +96,7 @@ function ContentEditorForm({entry: initialEntry,mode="admin",uploadsEnabled=fals
       const nextRichText={...richText};delete nextRichText.body;payload.richText=nextRichText;
     }
     if(entry.kind==="story") {payload.blocks=blocks;payload.cover=photos[0]?{...photos[0],id:"cover",caption:photos[0].alt}:null;}
+    if(entry.kind==="home") {payload.heroPhotos=photos;payload.heroPhotoMode=heroPhotoMode;payload.heroPhotoUrl=photos.find(photo=>photo.url===heroPhotoUrl)?.url??photos[0]?.url??null;}
     if(entry.kind==="wiki")payload.photos=photos;
     if(entry.kind==="member") {
       payload.photoUrl=photos[0]?.url??null;
@@ -103,7 +109,7 @@ function ContentEditorForm({entry: initialEntry,mode="admin",uploadsEnabled=fals
     const request=new FormData();request.set("entry",JSON.stringify({...entry,payload,revision:previous.revision ?? entry.revision,status:(entry.kind==="home"||entry.kind==="page")?"published":String(form.get("status")),consent:form.get("consent")==="on",order:mode==="wiki"?entry.order:Number(form.get("order"))}));
     const result=await (mode==="wiki"?saveWiki:saveContent)(previous,request);
     if(result.saved) {
-      savedSnapshot.current={values,richText,status,order,example,consent,sections,blocks,photos,websites,cohorts};
+      savedSnapshot.current={values,richText,status,order,example,consent,sections,blocks,photos,websites,cohorts,heroPhotoMode,heroPhotoUrl};
       setDirty(false);
       if(result.path) {
         if(result.reviewRequested) onReviewRequested(result.path);
@@ -124,10 +130,22 @@ function ContentEditorForm({entry: initialEntry,mode="admin",uploadsEnabled=fals
 
   }
   return <><form action={action} onChange={()=>setDirty(true)} className={styles.editor}>
-    <fieldset disabled={pending||uploading}><legend>기본 내용</legend>{editorFields[entry.kind].filter(field=>!closingKeys.includes(field.key)).map(field=><Fragment key={field.key}>{renderField(field)}{entry.kind==="member"&&field.key==="introduction"&&<MemberCohortsEditor values={cohorts} onChange={next=>{setCohorts(next);setDirty(true);}}/>}</Fragment>)}{entry.kind==="member"&&<MemberWebsites values={websites} onChange={next=>{setWebsites(next);setDirty(true);}}/>}</fieldset>
+    {entry.kind==="member" ? <>
+      <fieldset disabled={pending||uploading}><legend>기본 내용</legend>{editorFields.member.filter(field=>!["introduction","interests"].includes(field.key)).map(renderField)}</fieldset>
+      <fieldset disabled={pending||uploading}><legend>소개</legend>{editorFields.member.filter(field=>field.key==="introduction").map(field=>renderField({...field,label:"소개"}))}</fieldset>
+      <fieldset disabled={pending||uploading}><legend>참여한 기수</legend><MemberCohortsEditor values={cohorts} onChange={next=>{setCohorts(next);setDirty(true);}}/></fieldset>
+      <fieldset disabled={pending||uploading}><legend>함께 이야기하고 싶은 주제</legend>{editorFields.member.filter(field=>field.key==="interests").map(field=>renderField({...field,label:"함께 이야기하고 싶은 주제"}))}</fieldset>
+      <fieldset disabled={pending||uploading}><legend>더 알아보기</legend><MemberWebsites values={websites} onChange={next=>{setWebsites(next);setDirty(true);}}/></fieldset>
+    </> : <fieldset disabled={pending||uploading}><legend>기본 내용</legend>{editorFields[entry.kind].filter(field=>!closingKeys.includes(field.key)).map(renderField)}</fieldset>}
     {(entry.kind==="wiki"||entry.kind==="testimonial") && <fieldset disabled={pending||uploading}><legend>본문 (필수)</legend>{entry.kind==="testimonial"&&<p className={styles.help}>최소 한 개의 섹션 내용이 필요합니다. 번호와 제목은 생략할 수 있으며, 일반 글은 한 섹션에 모두 작성하세요.</p>}{sections.map((section,index)=><div className={styles.group} key={index}>{entry.kind==="testimonial"&&<label className={styles.field}>섹션 {index+1} 번호 (선택)<input className={styles.sectionNumberInput} value={section.number??""} maxLength={20} placeholder="예: 01 (비워두면 표시하지 않음)" onChange={event=>{setSections(items=>items.map((item,i)=>i===index?{...item,number:event.target.value}:item));setDirty(true);}}/></label>}<RichTextEditor label={`섹션 ${index+1} 제목${entry.kind==="testimonial"?" (선택)":""}` } value={section.title} document={section.titleRichText} defaultColor={entry.kind==="testimonial"?"#a94a27":undefined} compact required={entry.kind==="wiki"} disabled={pending||uploading} onChange={(title,titleRichText)=>{setSections(items=>items.map((item,i)=>i===index?{...item,title,titleRichText}:item));setDirty(true);}}/><RichTextEditor label={`섹션 ${index+1} 내용`} value={section.body} document={section.bodyRichText} required disabled={pending||uploading} onChange={(body,bodyRichText)=>{setSections(items=>items.map((item,i)=>i===index?{...item,body,bodyRichText}:item));setDirty(true);}}/>{entry.kind==="testimonial"&&<label className={styles.check}><input type="checkbox" checked={section.highlight??false} onChange={event=>{setSections(items=>items.map((item,i)=>i===index?{...item,highlight:event.target.checked}:item));setDirty(true);}}/>태그 형식으로 표시</label>}{entry.kind==="testimonial"&&section.highlight&&<p className={styles.help}>태그마다 줄을 바꿔 입력하세요. 각 줄이 개별 세이지색 태그로 표시됩니다.</p>}<div className={styles.controls}><button type="button" className={common.button} disabled={index===0} onClick={()=>{setSections(move(sections,index,-1));setDirty(true);}}>위로</button><button type="button" className={common.button} disabled={index===sections.length-1} onClick={()=>{setSections(move(sections,index,1));setDirty(true);}}>아래로</button><button type="button" className={common.button} disabled={sections.length===1} onClick={()=>{setSections(sections.filter((_,i)=>i!==index));setDirty(true);}}>섹션 삭제</button></div></div>)}<button type="button" className={common.button} disabled={entry.kind==="testimonial"&&sections.length>=30} onClick={()=>{setSections([...sections,{title:"",body:""}]);setDirty(true);}}>섹션 추가</button></fieldset>}
     {entry.kind==="testimonial"&&<fieldset disabled={pending||uploading}><legend>마무리 참여 안내 (선택)</legend><p className={styles.help}>비워 둔 항목은 표시하지 않습니다. 참여 버튼은 문구와 링크를 모두 입력한 경우에만 표시됩니다.</p>{editorFields.testimonial.filter(field=>closingKeys.includes(field.key)).map(renderField)}</fieldset>}
     {entry.kind==="story" && <fieldset disabled={pending||uploading}><legend>본문</legend>{blocks.map((block,index)=><div key={block.id} className={styles.group}>{block.type==="image"?<p className={styles.help}>기존 사진: {block.image.alt} (사진 정보는 그대로 유지됩니다.)</p>:<><label className={styles.field}>내용 종류<select value={block.type} onChange={event=>setBlocks(items=>items.map(item=>item.id===block.id?{...block,type:event.target.value as "paragraph"|"heading"}:item))}><option value="paragraph">문단</option><option value="heading">소제목</option></select></label><RichTextEditor label={`${index+1}. ${block.type==="heading"?"소제목":"문단"}`} value={block.text} document={block.richText} compact={block.type==="heading"} required disabled={pending||uploading} onChange={(text,richText)=>{setBlocks(items=>items.map(item=>item.id===block.id?{...block,text,richText}:item));setDirty(true);}}/></>}<div className={styles.controls}><button type="button" className={common.button} disabled={index===0} onClick={()=>{setBlocks(move(blocks,index,-1));setDirty(true);}}>위로</button><button type="button" className={common.button} disabled={index===blocks.length-1} onClick={()=>{setBlocks(move(blocks,index,1));setDirty(true);}}>아래로</button>{block.type!=="image" && <button type="button" className={common.button} disabled={blocks.length===1} onClick={()=>{setBlocks(blocks.filter(item=>item.id!==block.id));setDirty(true);}}>문단 삭제</button>}</div></div>)}<button type="button" className={common.button} onClick={()=>{setBlocks([...blocks,{id:crypto.randomUUID(),type:"paragraph",text:""}]);setDirty(true);}}>문단 추가</button></fieldset>}
+    {entry.kind==="home"&&<fieldset disabled={pending}><legend>홈 배경 사진</legend>
+      <label className={styles.field}>사진 표시 방식<select aria-label="사진 표시 방식" value={heroPhotoMode} disabled={uploading} onChange={event=>{setHeroPhotoMode(event.target.value as "fixed"|"random");setDirty(true);}}><option value="fixed">한 장 고정</option><option value="random">새로고침할 때마다 무작위 표시</option></select></label>
+      <p className={styles.help}>사진은 최대 10장까지 등록할 수 있습니다. 모두 제거하면 기존 기본 사진을 표시합니다. 무작위 표시에서는 같은 사진이 연속으로 나올 수 있습니다.</p>
+      {heroPhotoMode==="fixed"&&photos.length>0&&<label className={styles.field}>고정할 사진<select aria-label="고정할 사진" value={photos.some(photo=>photo.url===heroPhotoUrl)?heroPhotoUrl:photos[0].url} disabled={uploading} onChange={event=>{setHeroPhotoUrl(event.target.value);setDirty(true);}}>{photos.map((photo,index)=><option key={photo.url} value={photo.url}>{index+1}. {photo.alt}</option>)}</select></label>}
+      <PhotoPicker kind="home" contentKey={entry.key} photos={photos} onChange={next=>{setPhotos(next);setDirty(true);}} enabled={uploadsEnabled} disabled={pending||uploading} onBusy={setUploading} max={10}/>
+    </fieldset>}
     {entry.kind!=="home"&&entry.kind!=="page" && <fieldset disabled={pending}><legend>{entry.kind==="story"?"대표 사진":"사진 첨부"}</legend><PhotoPicker kind={entry.kind} contentKey={entry.key} photos={photos} onChange={next=>{setPhotos(next);setDirty(true);}} enabled={uploadsEnabled} disabled={pending||uploading} onBusy={setUploading} max={entry.kind==="wiki"?10:1}/></fieldset>}
     {entry.kind==="story" && <fieldset disabled={pending}><legend>본문 사진 첨부</legend><PhotoPicker kind={entry.kind} contentKey={entry.key} photos={blocks.flatMap(block=>block.type==="image"?[block.image]:[])} onChange={next=>{
       setBlocks(previous=>[...previous.filter(block=>block.type!=="image"||next.some(photo=>photo.url===block.image.url)),...next.filter(photo=>!previous.some(block=>block.type==="image"&&block.image.url===photo.url)).map(photo=>({id:crypto.randomUUID(),type:"image" as const,image:{...photo,id:crypto.randomUUID(),caption:photo.alt}}))]);setDirty(true);

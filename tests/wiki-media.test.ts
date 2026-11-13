@@ -5,12 +5,13 @@ import { PGlite } from "@electric-sql/pglite";
 import { PGLiteSocketServer } from "@electric-sql/pglite-socket";
 import { Pool } from "pg";
 import sharp from "sharp";
+import {homeContent} from "../src/data/home";
 import { readPublishedContent } from "../src/lib/content/repository";
 import { saveManagedContent } from "../src/lib/content/management";
 import { uploadImage, readImage, normalizeImage, type ImageStore, MAX_IMAGE_BYTES } from "../src/lib/content/media";
 
 async function setup(){
- const db=new PGlite();for(const file of ["001_content.sql","002_member_auth.sql","003_member_management.sql","004_content_management.sql","005_member_wiki_media.sql","006_wiki_publication_review.sql"])await db.exec(await readFile(new URL(`../database/migrations/${file}`,import.meta.url),"utf8"));
+ const db=new PGlite();for(const file of ["001_content.sql","002_member_auth.sql","003_member_management.sql","004_content_management.sql","005_member_wiki_media.sql","006_wiki_publication_review.sql","013_home_hero_photos.sql"])await db.exec(await readFile(new URL(`../database/migrations/${file}`,import.meta.url),"utf8"));
  const socket=new PGLiteSocketServer({db,host:"127.0.0.1",port:55448,maxConnections:10});await socket.start();
  const pool=new Pool({connectionString:"postgresql://postgres@127.0.0.1:55448/postgres",max:3});
  for(const [id,role,status] of [["admin","admin","approved"],["writer","member","approved"],["reader","member","approved"],["pending","member","pending"]])await pool.query(`INSERT INTO handa_auth_user(id,name,email,role,approval_status,"emailVerified") VALUES($1,$1,$2,$3,$4,true)`,[id,`${id}@example.test`,role,status]);
@@ -79,5 +80,26 @@ test("public images follow publication and consent; invalid uploads and quotas f
   await c.pool.query("INSERT INTO handa_media(id,uploader_id,kind,content_key,blob_pathname) SELECT gen_random_uuid(),'writer','wiki','quota','quota-'||n FROM generate_series(1,30) n");
   await assert.rejects(uploadImage(c.pool,c.store,"writer",{kind:"wiki",key:"quota",alt:"사진",bytes:c.bytes}),/잠시 후/);
   assert.equal(c.files.size,1);
+ }finally{await c.close();}
+});
+
+
+test("home photos upload only for admins, persist settings, and are public only while attached",async()=>{
+ const c=await setup();try{
+  const input={kind:"home",key:"homepage",alt:"HANDA 모임 사진",bytes:c.bytes};
+  await assert.rejects(uploadImage(c.pool,c.store,"writer",input),/권한/);
+  await assert.rejects(uploadImage(c.pool,c.store,"admin",{...input,key:"wrong-home"}),/확인/);
+  const photo=await uploadImage(c.pool,c.store,"admin",input);
+  const id=photo.url.split("/").at(-1)!;
+  await assert.rejects(readImage(c.pool,c.store,id,null),/찾을 수/);
+  const entry={kind:"home",key:"homepage",revision:0,status:"published",consent:false,order:0,payload:{...homeContent,heroPhotos:[photo],heroPhotoMode:"random",heroPhotoUrl:photo.url}};
+  await saveManagedContent(c.pool,"admin",entry);
+  const homes=await readPublishedContent((sql,values)=>c.pool.query(sql,values),"home");
+  assert.deepEqual(homes[0].heroPhotos,[photo]);assert.equal(homes[0].heroPhotoMode,"random");
+  assert.ok(await readImage(c.pool,c.store,id,null));
+  await saveManagedContent(c.pool,"admin",{...entry,revision:1,payload:{...entry.payload,heroPhotoMode:"fixed"}});
+  assert.equal((await readPublishedContent((sql,values)=>c.pool.query(sql,values),"home"))[0].heroPhotoMode,"fixed");
+  await saveManagedContent(c.pool,"admin",{...entry,revision:2,payload:{...entry.payload,heroPhotos:[],heroPhotoUrl:null}});
+  await assert.rejects(readImage(c.pool,c.store,id,null),/찾을 수/);
  }finally{await c.close();}
 });

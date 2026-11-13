@@ -42,6 +42,9 @@ export const contentSchemas = {
     ctaLabel:text,ctaUrl:webUrl,richText:richTextMapSchema.optional(),
   }),
   home: z.object({
+    heroPhotos: z.array(photo).max(10).optional(),
+    heroPhotoMode: z.enum(["fixed","random"]).optional(),
+    heroPhotoUrl: imageUrl.nullable().optional(),
     richText:richTextMapSchema.optional(), heroTitle: text, heroSubtitle: text, heroHighlight: text, heroDescription: z.array(text).min(1),
     aboutTitle: z.array(text).min(1), aboutLead: z.array(text), aboutDescription: z.string().trim(),
     aboutValue1Title: text.default(homeAboutDefaults.aboutValue1Title),
