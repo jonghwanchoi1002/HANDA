@@ -7,8 +7,7 @@ export default function MemberCohortsEditor({ values, onChange }: { values: Memb
   function update(index: number, key: keyof MemberCohort, value: string) {
     onChange(values.map((item, i) => i === index ? { ...item, [key]: value } : item));
   }
-  return <div className={styles.group}>
-    <h3 className={styles.groupTitle}>참여한 기수 (선택)</h3>
+  return <div className={styles.memberFields}>
     <p className={styles.help}>기수마다 항목을 추가해 이름과 기간을 입력하세요. 기간은 생략할 수 있고, 모두 비우면 프로필에 표시하지 않습니다.</p>
     {values.map((item, index) => <div key={index} className={styles.cohortRow}>
       <label className={styles.field}>기수 {index + 1} 이름<input name="cohortNames" maxLength={80} placeholder="예: 파일럿, 1기, 2기" value={item.name} required={Boolean(item.period.trim())} onChange={event => update(index, "name", event.target.value)}/></label>
