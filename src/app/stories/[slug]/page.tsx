@@ -25,7 +25,6 @@ export default async function StoryPage({ params }: Props) {
   return <main id="stories-main" className={`${styles.main} ${styles.articleMain}`}>
     <Link href="/stories" className={styles.back}>← 모임 후기 목록</Link>
     <article><header className={styles.articleHeader}><p className={styles.eyebrow}>COMMUNITY JOURNAL {story.isExample && "· 예시 후기"}</p><h1><ContentText content={story} field="title" inline/></h1><p><ContentText content={story} field="summary" inline/></p><div className={styles.meta}><time dateTime={story.eventDate}>{formatEventDate(story.eventDate)}</time><span>{story.location}</span></div></header>
-      {story.isExample && <aside className={styles.notice}>실제 행사가 아닌 예시 후기입니다. 날짜와 장소도 화면 개발을 위한 가상의 정보입니다.</aside>}
       {story.cover && <StoryPhoto image={story.cover} />}
       <div className={styles.body}>{story.blocks.map((block) => {
         switch (block.type) {

@@ -22,7 +22,7 @@ export function emptyPayload(kind: ContentKind, key: string): Record<string, unk
   else if (kind === "testimonial") Object.assign(payload,{id:key,photo:null,sections:[{number:"",title:"",paragraphs:[],highlight:false}],...testimonialClosingDefaults});
   else payload.slug=key;
   if (kind === "wiki") payload.sections=[{title:"",paragraphs:[]}];
-  if (kind === "member") Object.assign(payload,{website:null,websites:[],photoUrl:null});
+  if (kind === "member") Object.assign(payload,{website:null,websites:[],cohorts:[],photoUrl:null});
   if (kind === "story") Object.assign(payload,{cover:null,blocks:[{id:"paragraph-1",type:"paragraph",text:""}]});
   return payload;
 }

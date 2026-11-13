@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import RichText, { ContentText } from "@/components/rich-text";
 import { getPublishedTestimonial } from "@/lib/testimonials";
 import { getTestimonialSections } from "@/lib/content/testimonial-sections";
+import TestimonialSectionContent from "@/components/testimonial-section-content";
 import styles from "../testimonials.module.css";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -29,12 +30,11 @@ export default async function TestimonialPage({ params }: Props) {
           <div><h2><ContentText content={item} field="name" inline/></h2><p><ContentText content={item} field="introduction" inline/></p></div>
         </div>
       </header>
-      {item.isExample && <aside className={styles.notice}>화면 개발을 위한 가상의 예시 후기입니다. 실제 멤버의 후기가 아닙니다.</aside>}
       <div className={styles.detailBody} role="region" aria-label="후기 본문">
         {sections.length ? sections.map((section,index)=><section className={styles.reviewSection} key={index}>
           {section.number&&<p className={styles.sectionNumber}>{section.number}</p>}
           {section.title&&<h2 className={styles.sectionTitle}><RichText text={section.title} document={section.titleRichText} inline/></h2>}
-          <div className={section.highlight?styles.highlight:styles.sectionBody}><RichText text={section.paragraphs.join("\n")} document={section.bodyRichText}/></div>
+          <div className={styles.sectionBody}><TestimonialSectionContent section={section}/></div>
         </section>) : <p>자세한 후기를 준비하고 있습니다.</p>}
       </div>
       {showClosing&&<aside className={styles.joinBox} aria-label="HANDA 참여 안내">

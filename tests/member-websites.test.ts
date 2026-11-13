@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { contentSchemas, parseContent } from "../src/lib/content/schema";
 import { memberRecords } from "../src/data/members";
-import { getMemberWebsites } from "../src/lib/content/member-websites";
+import { getMemberWebsites, getMemberWebsiteLinks, memberWebsiteLabel, memberWebsiteFields } from "../src/lib/content/member-websites";
+import { imageURLs } from "../src/lib/content/media-access";
 
 const member = memberRecords[0];
 
@@ -29,4 +30,25 @@ test("malformed URLs return validation errors rather than throwing inside safePa
     assert.equal(contentSchemas.member.safeParse({ ...member, websites: [website] }).success, false, website);
   }
   assert.equal(contentSchemas.page.safeParse({ ctaUrl: "not a URL" }).success, false);
+});
+
+test("named links and legacy URLs coexist, normalize and retain safe display labels", () => {
+  const parsed = parseContent("member", { ...member, websites: [{ name: " 회사 홈페이지 ", url: "example.com/about" }, "https://www.second.com", { name: "", url: "" }] });
+  assert.deepEqual(parsed.websites, [{ name: "회사 홈페이지", url: "https://example.com/about" }, "https://www.second.com"]);
+  assert.equal(parsed.website, "https://example.com/about");
+  const links = getMemberWebsiteLinks(parsed);
+  assert.equal(memberWebsiteLabel(links[0]), "회사 홈페이지");
+  assert.equal(memberWebsiteLabel(links[1]), "www.second.com");
+  assert.deepEqual(getMemberWebsites(parsed), ["https://example.com/about", "https://www.second.com"]);
+  assert.deepEqual(imageURLs({ ...parsed, photoUrl: "/api/images/photo" }), ["/api/images/photo"]);
+  assert.throws(() => parseContent("member", { ...member, websites: [{ name: "Unsafe", url: "javascript:alert(1)" }] }));
+});
+
+test("form serialization keeps names paired when empty rows are skipped", () => {
+  const form = new FormData();
+  for (const [name, url] of [["이름만", ""], ["회사", " example.com "], ["", "https://second.com"]]) {
+    form.append("websiteNames", name);
+    form.append("websites", url);
+  }
+  assert.deepEqual(memberWebsiteFields(form), [{ name: "회사", url: "example.com" }, { name: "", url: "https://second.com" }]);
 });

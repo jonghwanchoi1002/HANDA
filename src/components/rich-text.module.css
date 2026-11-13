@@ -5,3 +5,10 @@
 .content strong, .inline strong { font-weight: 700; }
 .content em, .inline em { font-style: italic; }
 .content u, .inline u { text-decoration: underline; text-underline-offset: .15em; }
+.content h2, .content h3, .content h4 { color: inherit; line-height: 1.5; margin: 1em 0 .5em; overflow-wrap: anywhere; }
+.content h2 { font-size: 1.5em; }.content h3 { font-size: 1.25em; }.content h4 { font-size: 1.1em; }
+.content ul, .content ol { padding-inline-start: 1.6em; margin: .5em 0 1em; }
+.content li { margin: .3em 0; }.content li p { margin: 0; }
+.content .taskList { list-style: none; padding-inline-start: 0; }
+.taskList > li { display: flex; align-items: start; gap: .6em; }.taskList > li > div { flex: 1; min-width: 0; }
+.taskCheck { display: inline-grid; place-items: center; width: 1em; height: 1em; margin-top: .4em; border: 1px solid currentColor; border-radius: 2px; line-height: 1; color: var(--terracotta-deep); flex-shrink: 0; user-select: none; }
