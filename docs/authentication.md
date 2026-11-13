@@ -70,9 +70,10 @@ Preview OAuth는 사용할 고정 브랜치 URL을 Vercel에서 확인해 BETTER
 
 ## 4. 이메일 가입과 비밀번호 재설정 메일
 
-현재 메일 발송은 Resend API를 사용합니다. Resend에서 발송용 API 키와 검증된 발신 주소를 준비하고 설정합니다.
+메일 발송은 `MAIL_PROVIDER`로 Resend 또는 Gmail SMTP를 선택합니다. 도메인 구매 전 임시 Gmail 발송은 [Gmail 설정 안내](gmail-auth-email.md)를 따릅니다. 설정을 생략하면 기존처럼 Resend를 사용합니다. Resend에서는 발송용 API 키와 검증된 발신 주소를 준비하고 설정합니다.
 
 ```dotenv
+MAIL_PROVIDER=resend
 RESEND_API_KEY=발급받은_메일발송_API키
 MAIL_FROM=HANDA <검증된_발신_주소>
 ```
