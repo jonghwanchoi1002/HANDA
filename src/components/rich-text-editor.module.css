@@ -1,18 +1,13 @@
 .wrapper { min-width: 0; display: grid; gap: 8px; }
 .label { font-size: 14px; }
-.toolbar { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 8px; background: var(--sage); border: 1px solid var(--control-border); border-radius: 6px 6px 0 0; }
-.group { display: flex; align-items: center; flex-wrap: wrap; gap: 3px; padding-inline-end: 7px; border-inline-end: 1px solid var(--border); }
+.toolbar { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; padding: 6px; background: var(--sage); border: 1px solid var(--control-border); border-radius: 6px 6px 0 0; }
+.group { display: flex; align-items: center; flex-wrap: wrap; gap: 2px; padding-inline-end: 4px; border-inline-end: 1px solid var(--border); }
 .group:last-child { border: 0; }
-.toolbar button, .toolbar select, .toolbar .fontSize { min-height: 36px; border: 1px solid transparent; border-radius: 3px; color: var(--ink); background: transparent; font: inherit; font-size: 13px; }
 .toolbar button { min-width: 34px; padding: 6px 8px; cursor: pointer; }
 .toolbar select { padding: 6px 4px; max-width: 150px; cursor: pointer; }
-.toolbar .fontSize { width: 48px; padding: 4px; text-align: center; background: var(--cream); border-color: var(--control-border); -moz-appearance: textfield; }
-.fontSize::-webkit-inner-spin-button { -webkit-appearance: none; }
 .toolbar button:hover:not(:disabled), .toolbar select:hover:not(:disabled) { background: var(--cream); }
 .toolbar button[aria-pressed="true"] { background: var(--ink); color: var(--cream); }
 .toolbar button:disabled, .toolbar select:disabled, .toolbar input:disabled { opacity: .5; cursor: not-allowed; }
-.colorControl { position: relative; display: grid; place-items: center; width: 34px; height: 36px; font-size: 15px; font-weight: 700; cursor: pointer; }
-.colorControl input { position: absolute; width: 24px; height: 8px; bottom: 1px; left: 5px; padding: 0; border: 0; background: transparent; cursor: pointer; }
 .area { border: 1px solid var(--control-border); border-radius: 0 0 6px 6px; margin-top: -9px; background: var(--cream); }
 .area > div { color: var(--editor-text-color, var(--ink)); min-height: 160px; padding: 14px; outline: none; font-size: 16px; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
 .compact .area > div { min-height: 64px; }
@@ -20,7 +15,28 @@
 .area h1, .area h2, .area h3 { color: inherit; line-height: 1.5; margin: .6em 0 .4em; }.area h1 { font-size: 1.5em; }.area h2 { font-size: 1.25em; }.area h3 { font-size: 1.1em; }
 .area strong { font-weight: 700; }.area em { font-style: italic; }
 .area ul, .area ol { padding-inline-start: 1.6em; margin: .5em 0; }.area li p { margin: 0; }
-.area ul[data-type="taskList"] { list-style: none; padding-inline-start: 0; }.area ul[data-type="taskList"] > li { display: flex; gap: 10px; align-items: start; }.area ul[data-type="taskList"] > li > div { flex: 1; min-width: 0; }.area ul[data-type="taskList"] > li > label { flex-shrink: 0; display: inline-block; }.area ul[data-type="taskList"] > li input { width: auto; margin-top: .4em; padding: 0; }
 .area:focus-within { outline: 3px solid var(--focus); outline-offset: 3px; }.area [contenteditable="false"] { opacity: .65; }
 .loading { margin: 0; font-size: 13px; padding: 20px; color: var(--muted); border: 1px solid var(--control-border); }
-@media (max-width: 600px) { .toolbar { gap: 8px 4px; padding: 6px; }.toolbar button, .toolbar select, .toolbar .fontSize { min-height: 40px; }.group { padding-inline-end: 4px; } }
+
+.toolbar button, .toolbar select { min-height: 36px; border: 1px solid transparent; border-radius: 3px; color: var(--ink); background: transparent; font: inherit; font-size: 13px; }
+.toolbar .sizeSelect { width: 64px; background: var(--cream); border-color: var(--control-border); }
+.colorControl { position: relative; display: grid; place-items: center; width: 34px; height: 36px; flex-shrink: 0; cursor: pointer; }
+.colorLetter { font-size: 17px; font-weight: 700; color: var(--selected-color); line-height: 1; }
+.colorBar { position: absolute; bottom: 3px; left: 7px; width: 20px; height: 4px; border-radius: 1px; background: var(--selected-color); }
+.colorControl input { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; opacity: 0; cursor: pointer; }
+.colorControl:focus-within { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 3px; }
+.dropdown { position: relative; }
+.toolbar .menuTrigger { display: flex; align-items: center; gap: 1px; padding: 6px 4px; }
+.menuTrigger > svg:last-child { width: 12px; }
+.menu { position: absolute; z-index: 40; top: calc(100% + 6px); width: 190px; padding: 6px; border: 1px solid var(--border); border-radius: 6px; background: var(--cream); box-shadow: 0 6px 20px var(--shadow-soft); }
+.spacingMenu { width: 150px; }
+.alignmentChoices { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; }
+.toolbar .menu button { display: flex; align-items: center; justify-content: flex-start; gap: 10px; width: 100%; padding: 8px; text-align: left; }
+.toolbar .alignmentChoices button { justify-content: center; padding: 6px; }
+.toolbar button[aria-expanded="true"], .toolbar .menu button[aria-checked="true"] { color: var(--cream); background: var(--ink); }
+.menuDivider { border-top: 1px solid var(--border); margin: 5px 0; }
+@media (max-width: 600px) { .toolbar { gap: 6px 3px; }.toolbar button, .toolbar select { min-height: 40px; }.group { padding-inline-end: 3px; } }
+
+.colorControl input:disabled { opacity: 0; cursor: not-allowed; }
+.toolbar > .group > button { display: inline-flex; align-items: center; justify-content: center; }
+.toolbar button[aria-pressed="true"]:hover, .toolbar button.menuTrigger[aria-expanded="true"] { background: var(--ink); color: var(--cream); }

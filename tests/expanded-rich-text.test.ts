@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { cleanEditorDocument } from "../src/lib/content/rich-text-editor-document";
+import { cleanEditorDocument, documentForEditing } from "../src/lib/content/rich-text-editor-document";
 import { documentFromText, richTextDocumentSchema, richTextPlain, type RichTextDocument } from "../src/lib/content/rich-text";
 import { testimonialSectionTags } from "../src/lib/content/testimonial-sections";
 
@@ -40,4 +40,14 @@ test("unsafe styles, unsupported nodes and deep recursive lists fail bounded val
   for (let i = 0; i < 30; i++) node = { type: "bulletList", content: [{ type: "listItem", content: [node] }] };
   assert.equal(richTextDocumentSchema.safeParse({ type: "doc", content: [node] }).success, false);
   assert.equal(richTextDocumentSchema.safeParse(documentFromText("x".repeat(30001))).success, false);
+});
+
+test("removed checklist controls preserve legacy text as ordinary editable lists", () => {
+  const original = structuredClone(document);
+  const editable = documentForEditing(document);
+  assert.equal(editable.content[2].type, "bulletList");
+  assert.equal(editable.content[2].content![0].type, "listItem");
+  assert.equal(richTextPlain(editable), richTextPlain(document));
+  assert.equal(richTextDocumentSchema.safeParse(editable).success, true);
+  assert.deepEqual(document, original);
 });

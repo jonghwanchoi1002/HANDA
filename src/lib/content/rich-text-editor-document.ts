@@ -1,6 +1,17 @@
 import type { JSONContent } from "@tiptap/core";
 import { fontFamilies, fontSizes, lineHeights, normalizeTextColor, type RichTextBlock, type RichTextBlockAttributes, type RichTextDocument, type RichTextInline, type RichTextListItem, type RichTextMark } from "./rich-text";
 
+/** Checklist controls were removed; preserve previously saved text as ordinary lists. */
+export function documentForEditing(document: RichTextDocument): RichTextDocument {
+  function visit(nodes: RichTextBlock[]): RichTextBlock[] {
+    return nodes.map(node => {
+      if (node.type === "paragraph" || node.type === "heading") return node;
+      return { ...node, type: node.type === "taskList" ? "bulletList" : node.type, content: node.content.map(item => ({ type: "listItem" as const, content: visit(item.content) })) };
+    });
+  }
+  return { type: "doc", content: visit(document.content) };
+}
+
 export function cleanEditorDocument(raw: JSONContent): RichTextDocument {
   function inline(content: JSONContent[] = []): RichTextInline[] {
     return content.flatMap<RichTextInline>(node => {
