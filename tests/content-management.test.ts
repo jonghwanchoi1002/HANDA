@@ -55,6 +55,17 @@ test("member websites create, reload, update and clear without a database migrat
     member=(await readPublishedContent(c.query,"member"))[0];
     assert.deepEqual(member.websites,named);
     assert.equal(member.website,"https://site0.example.com");
+    const cohorts=[{name:"파일럿",period:"2025.12 – 2026.5"},{name:"1기",period:"2026.6 – 8"}];
+    await saveManagedContent(c.pool,"admin",{...entry,revision:4,payload:{...member,cohorts}});
+    member=(await readPublishedContent(c.query,"member"))[0];
+    assert.deepEqual(member.cohorts,cohorts);
+    await saveManagedContent(c.pool,"admin",{...entry,revision:5,payload:{...member,cohorts:[cohorts[1]]}});
+    member=(await readPublishedContent(c.query,"member"))[0];
+    assert.deepEqual(member.cohorts,[cohorts[1]]);
+    await saveManagedContent(c.pool,"admin",{...entry,revision:6,payload:{...member,cohorts:[]}});
+    member=(await readPublishedContent(c.query,"member"))[0];
+    assert.deepEqual(member.cohorts,[]);
+    assert.deepEqual(member.websites,named);
   }finally{await c.close();}
 });
 

@@ -16,6 +16,8 @@ export async function saveContent(_previous: SaveState, form: FormData): Promise
   catch(error) {
     if (error instanceof ContentManagementError) return {message:error.message};
     if (error instanceof z.ZodError) {
+      const cohortIssue=error.issues.find(issue=>issue.path[0]==="cohorts");
+      if(cohortIssue) return {message:"참여한 기수의 이름과 기간을 확인해 주세요. 기간을 입력한 항목에는 기수 이름도 입력해야 합니다."};
       const websiteIssue=error.issues.find(issue=>issue.path[0]==="websites"||issue.path[0]==="website");
       if(websiteIssue) return {message:`웹사이트${typeof websiteIssue.path[1]==="number"?` ${websiteIssue.path[1]+1}`:""} 주소를 확인해 주세요. example.com 또는 https://example.com 형식으로 입력해 주세요.`};
       return {message:"필수 항목과 입력 형식을 확인해 주세요. 본문과 각 문단의 내용을 입력해야 합니다."};

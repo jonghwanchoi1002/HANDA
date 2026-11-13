@@ -9,6 +9,7 @@ import { getPublishedMember } from "@/lib/members";
 import styles from "../members.module.css";
 import { getMemberWebsiteLinks } from "@/lib/content/member-websites";
 import MemberWebsiteLinks from "@/components/member-website-links";
+import MemberCohorts from "@/components/member-cohorts";
 import ContentTags from "@/components/content-tags";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -32,6 +33,7 @@ export default async function MemberPage({ params }: Props) {
       <div><div className={styles.profilePortrait}>{member.photoUrl ? <Image src={member.photoUrl} alt={`${member.name} 프로필 사진`} width={600} height={600} unoptimized /> : <><span aria-hidden="true">↗</span><small>프로필 사진 준비 중</small></>}</div></div>
       <div><p className={styles.eyebrow}><ContentText content={member} field="field" inline/></p><h1><ContentText content={member} field="name" inline/></h1><p className={styles.profileRole}><ContentText content={member} field="role" inline/></p><p className={styles.lead}><ContentText content={member} field="summary" inline/></p>
         <section className={styles.bio}><h2>소개</h2><ContentText content={member} field="introduction"/></section>
+        <MemberCohorts cohorts={member.cohorts}/>
         <section className={styles.bio}><h2>함께 이야기하고 싶은 주제</h2><ContentTags items={member.interests.map(text=>({text}))}/></section>
         <section className={styles.bio}><h2>더 알아보기</h2><MemberWebsiteLinks links={websites}/></section>
       </div>

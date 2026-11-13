@@ -21,6 +21,10 @@
 .check input { margin-top: 5px; }
 .help { font-size: 13px; color: var(--muted); line-height: 1.8; }
 .group { display: grid; gap: 16px; border-top: 1px solid var(--border); padding-top: 18px; }
+.groupTitle { margin: 0; font-size: 16px; }
+.cohortRow { display: flex; align-items: end; gap: 12px; }
+.cohortRow > label { flex: 1; min-width: 0; }
+@media (max-width: 600px) { .cohortRow { flex-direction: column; align-items: stretch; } .cohortRow > button { align-self: flex-end; } }
 .controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
 .websiteRow { display: flex; align-items: end; gap: 12px; }
 .websiteFields { display: grid; gap: 16px; flex: 1; min-width: 0; }

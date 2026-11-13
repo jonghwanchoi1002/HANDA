@@ -36,6 +36,12 @@
 .lead { font-size: 20px; line-height: 1.8; margin: 28px 0; word-break: keep-all; }
 .bio { border-top: 1px solid var(--border); padding-top: 24px; margin-top: 32px; }
 .bio h2 { font-size: 20px; }
+.cohortSection { margin-top: 28px; }
+.cohortSection h2 { font-size: 20px; margin: 0 0 14px; }
+.cohorts { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; margin: 0; padding: 0; }
+.cohorts li { display: flex; flex-direction: column; min-width: 84px; max-width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; background: color-mix(in srgb, var(--cream) 70%, white); overflow-wrap: anywhere; }
+.cohortName { font-size: 14px; font-weight: 700; line-height: 1.5; }
+.cohortPeriod { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
 .websites { list-style: none; margin: 0; padding: 0; overflow-wrap: anywhere; }
 .bio p { font-size: 15px; color: var(--muted); line-height: 1.9; word-break: keep-all; }
 .end { border-top: 1px solid var(--border); margin-top: 55px; padding-top: 22px; }
