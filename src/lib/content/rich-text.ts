@@ -3,6 +3,11 @@ import { z } from "zod";
 export const fontSizes = Array.from({ length: 65 }, (_, i) => `${i + 8}px`);
 export const fontFamilies = ["Arial", "Noto Sans KR", "Georgia", "Times New Roman", "Courier New", "Verdana"] as const;
 export const lineHeights = ["1", "1.15", "1.5", "1.8", "2", "2.5", "3"] as const;
+export function normalizeLineHeight(value: unknown): string | undefined {
+  if (typeof value !== "string" || !/^\d+(?:\.\d{1,2})?$/.test(value)) return undefined;
+  const height = Number(value);
+  return height >= 0.5 && height <= 5 ? String(height) : undefined;
+}
 export const textColorSchema = z.string().regex(/^#[0-9a-fA-F]{6}$/).transform(value => value.toLowerCase());
 export function normalizeTextColor(value: unknown): string | undefined {
   if (typeof value !== "string") return undefined;
@@ -29,7 +34,9 @@ export type RichTextMark = z.infer<typeof mark>;
 export type RichTextInline = z.infer<typeof inlineNode>;
 const blockAttributes = z.object({
   textAlign: z.enum(["left", "center", "right", "justify"]).optional(),
-  lineHeight: z.enum(lineHeights).optional(), indent: z.number().int().min(0).max(6).optional(),
+  lineHeight: z.string().refine(value => normalizeLineHeight(value) !== undefined).optional(), indent: z.number().int().min(0).max(6).optional(),
+  spaceBefore: z.number().int().min(0).max(120).optional(), spaceAfter: z.number().int().min(0).max(120).optional(),
+  keepWithNext: z.boolean().optional(), keepTogether: z.boolean().optional(), widowControl: z.boolean().optional(), pageBreakBefore: z.boolean().optional(),
 }).strict();
 export type RichTextBlockAttributes = z.infer<typeof blockAttributes>;
 export type RichTextTextBlock = { type: "paragraph"; attrs?: RichTextBlockAttributes; content?: RichTextInline[] }

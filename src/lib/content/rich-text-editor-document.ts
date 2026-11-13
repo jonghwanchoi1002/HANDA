@@ -1,5 +1,5 @@
 import type { JSONContent } from "@tiptap/core";
-import { fontFamilies, fontSizes, lineHeights, normalizeTextColor, type RichTextBlock, type RichTextBlockAttributes, type RichTextDocument, type RichTextInline, type RichTextListItem, type RichTextMark } from "./rich-text";
+import { fontFamilies, fontSizes, normalizeLineHeight, normalizeTextColor, type RichTextBlock, type RichTextBlockAttributes, type RichTextDocument, type RichTextInline, type RichTextListItem, type RichTextMark } from "./rich-text";
 
 /** Checklist controls were removed; preserve previously saved text as ordinary lists. */
 export function documentForEditing(document: RichTextDocument): RichTextDocument {
@@ -35,8 +35,11 @@ export function cleanEditorDocument(raw: JSONContent): RichTextDocument {
       if (node.type === "paragraph" || node.type === "heading") {
         const attrs: RichTextBlockAttributes = {};
         if (["left", "center", "right", "justify"].includes(node.attrs?.textAlign)) attrs.textAlign = node.attrs!.textAlign;
-        if (lineHeights.includes(node.attrs?.lineHeight)) attrs.lineHeight = node.attrs!.lineHeight;
+        const lineHeight = normalizeLineHeight(node.attrs?.lineHeight);
+        if (lineHeight) attrs.lineHeight = lineHeight;
         if (Number.isInteger(node.attrs?.indent) && node.attrs!.indent > 0 && node.attrs!.indent <= 6) attrs.indent = node.attrs!.indent;
+        for (const key of ["spaceBefore", "spaceAfter"] as const) if (Number.isInteger(node.attrs?.[key]) && node.attrs![key] >= 0 && node.attrs![key] <= 120) attrs[key] = node.attrs![key];
+        for (const key of ["keepWithNext", "keepTogether", "widowControl", "pageBreakBefore"] as const) if (typeof node.attrs?.[key] === "boolean") attrs[key] = node.attrs![key];
         if (node.type === "heading") return [{ type: "heading", attrs: { ...attrs, level: [1, 2, 3].includes(node.attrs?.level) ? node.attrs!.level : 1 }, content: inline(node.content) }];
         return [{ type: "paragraph", ...(Object.keys(attrs).length ? { attrs } : {}), content: inline(node.content) }];
       }

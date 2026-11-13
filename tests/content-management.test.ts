@@ -23,7 +23,7 @@ const wiki={kind:"wiki",key:"new-wiki",revision:0,status:"draft",consent:false,o
 test("headings, checklist state and paragraph layout survive content save and reload",async()=>{
   const c=await setup();try{
     const document:RichTextDocument={type:"doc",content:[
-      {type:"heading",attrs:{level:2,textAlign:"center",lineHeight:"2"},content:[{type:"text",text:"서식 제목",marks:[{type:"textStyle",attrs:{fontFamily:"Georgia",fontSize:"24px"}}]}]},
+      {type:"heading",attrs:{level:2,textAlign:"center",lineHeight:"1.37",spaceBefore:12,spaceAfter:20,keepWithNext:true,keepTogether:true,widowControl:false,pageBreakBefore:true},content:[{type:"text",text:"서식 제목",marks:[{type:"textStyle",attrs:{fontFamily:"Georgia",fontSize:"24px"}}]}]},
       {type:"taskList",content:[{type:"taskItem",attrs:{checked:true},content:[{type:"paragraph",attrs:{indent:1},content:[{type:"text",text:"완료한 항목"}]}]}]},
     ]};
     await saveManagedContent(c.pool,"admin",{...wiki,status:"published",payload:{...wiki.payload,sections:[{title:"본문",paragraphs:richTextPlain(document).split("\n"),bodyRichText:document}]}});

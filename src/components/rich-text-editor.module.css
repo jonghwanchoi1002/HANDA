@@ -29,7 +29,6 @@
 .toolbar .menuTrigger { display: flex; align-items: center; gap: 1px; padding: 6px 4px; }
 .menuTrigger > svg:last-child { width: 12px; }
 .menu { position: absolute; z-index: 40; top: calc(100% + 6px); width: 190px; padding: 6px; border: 1px solid var(--border); border-radius: 6px; background: var(--cream); box-shadow: 0 6px 20px var(--shadow-soft); }
-.spacingMenu { width: 150px; }
 .alignmentChoices { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; }
 .toolbar .menu button { display: flex; align-items: center; justify-content: flex-start; gap: 10px; width: 100%; padding: 8px; text-align: left; }
 .toolbar .alignmentChoices button { justify-content: center; padding: 6px; }
@@ -40,3 +39,13 @@
 .colorControl input:disabled { opacity: 0; cursor: not-allowed; }
 .toolbar > .group > button { display: inline-flex; align-items: center; justify-content: center; }
 .toolbar button[aria-pressed="true"]:hover, .toolbar button.menuTrigger[aria-expanded="true"] { background: var(--ink); color: var(--cream); }
+.spacingMenu { width: 280px; max-height: min(65vh, 560px); overflow-y: auto; }
+.toolbar .spacingMenu button { position: relative; padding-inline-start: 28px; }
+.toolbar .spacingMenu button[aria-checked="true"] { background: transparent; color: var(--ink); }
+.spacingMenu button[aria-checked="true"]::before { content: "✓"; position: absolute; left: 8px; font-weight: 700; }
+.menuHint { margin: 6px 4px; color: var(--muted); font-size: 11px; line-height: 1.6; }
+.spacingFields.spacingFields { display: grid; gap: 16px; border: 0; padding: 0; margin: 0; }
+.spacingFields label { display: grid; gap: 6px; font-size: 14px; }
+.spacingFields input { width: 100%; border: 1px solid var(--control-border); padding: 10px; border-radius: 4px; background: var(--cream); color: var(--ink); }
+.spacingFields label > span, .spacingFields > div > span { font-size: 12px; color: var(--muted); }
+@media print { .toolbar, .label { display: none; } }

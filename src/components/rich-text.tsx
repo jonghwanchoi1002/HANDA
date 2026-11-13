@@ -17,7 +17,16 @@ export default function RichText({ document, text, inline = false }: { document?
     });
   }
   function blockStyle(block: RichTextTextBlock): CSSProperties {
-    return { textAlign: block.attrs?.textAlign, lineHeight: block.attrs?.lineHeight, marginInlineStart: block.attrs?.indent ? `${block.attrs.indent * 1.5}em` : undefined };
+    return {
+      textAlign: block.attrs?.textAlign, lineHeight: block.attrs?.lineHeight,
+      marginInlineStart: block.attrs?.indent ? `${block.attrs.indent * 1.5}em` : undefined,
+      marginTop: block.attrs?.spaceBefore === undefined ? undefined : `${block.attrs.spaceBefore}px`,
+      marginBottom: block.attrs?.spaceAfter === undefined ? undefined : `${block.attrs.spaceAfter}px`,
+      breakAfter: block.attrs?.keepWithNext ? "avoid-page" : undefined,
+      breakInside: block.attrs?.keepTogether ? "avoid-page" : undefined,
+      breakBefore: block.attrs?.pageBreakBefore ? "page" : undefined,
+      orphans: block.attrs?.widowControl === false ? 1 : 2, widows: block.attrs?.widowControl === false ? 1 : 2,
+    };
   }
   function blocks(content: RichTextBlock[]): ReactNode {
     return content.map((block, index) => {

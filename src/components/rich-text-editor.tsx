@@ -6,8 +6,9 @@ import { Extension } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
 import TextAlign from "@tiptap/extension-text-align";
 import { TextStyle, FontSize, Color, FontFamily } from "@tiptap/extension-text-style";
-import { documentFromText, fontSizes, fontFamilies, lineHeights, richTextPlain, normalizeTextColor, type RichTextDocument } from "@/lib/content/rich-text";
+import { documentFromText, fontSizes, fontFamilies, normalizeLineHeight, richTextPlain, normalizeTextColor, type RichTextDocument } from "@/lib/content/rich-text";
 import EditorIcon from "./editor-icon";
+import ParagraphSpacingDialog, { type ParagraphSpacing } from "./paragraph-spacing-dialog";
 import { cleanEditorDocument, documentForEditing } from "@/lib/content/rich-text-editor-document";
 import styles from "./rich-text-editor.module.css";
 
@@ -31,11 +32,25 @@ const SafeFontFamily = FontFamily.extend({
     renderHTML: attrs => fontFamilies.includes(attrs.fontFamily) ? { style: `font-family: ${attrs.fontFamily}` } : {},
   } } }]; },
 });
+const paginationAttributes = Object.fromEntries([
+  { key: "keepWithNext", data: "keep-with-next", on: "break-after: avoid-page", off: "break-after: auto" },
+  { key: "keepTogether", data: "keep-together", on: "break-inside: avoid-page", off: "break-inside: auto" },
+  { key: "widowControl", data: "widow-control", on: "orphans: 2; widows: 2", off: "orphans: 1; widows: 1" },
+  { key: "pageBreakBefore", data: "page-break-before", on: "break-before: page", off: "break-before: auto" },
+].map(option => [option.key, { default: null,
+  parseHTML: (element: HTMLElement) => element.getAttribute(`data-${option.data}`) === "true" ? true : element.getAttribute(`data-${option.data}`) === "false" ? false : null,
+  renderHTML: (attrs: Record<string, unknown>) => typeof attrs[option.key] === "boolean" ? { [`data-${option.data}`]: String(attrs[option.key]), style: attrs[option.key] ? option.on : option.off } : {},
+}]));
 const ParagraphLayout = Extension.create({
   name: "paragraphLayout",
   addGlobalAttributes() { return [{ types: ["paragraph", "heading"], attributes: {
-    lineHeight: { default: null, parseHTML: el => lineHeights.includes(el.style.lineHeight as typeof lineHeights[number]) ? el.style.lineHeight : null,
-      renderHTML: attrs => lineHeights.includes(attrs.lineHeight) ? { style: `line-height: ${attrs.lineHeight}` } : {} },
+    lineHeight: { default: null, parseHTML: el => normalizeLineHeight(el.style.lineHeight) ?? null,
+      renderHTML: attrs => normalizeLineHeight(attrs.lineHeight) ? { style: `line-height: ${normalizeLineHeight(attrs.lineHeight)}` } : {} },
+    ...Object.fromEntries((["spaceBefore", "spaceAfter"] as const).map(key => [key, { default: null,
+      parseHTML: (element: HTMLElement) => { const raw = key === "spaceBefore" ? element.style.marginTop : element.style.marginBottom; const value = parseFloat(raw); return raw.endsWith("px") && Number.isInteger(value) && value >= 0 && value <= 120 ? value : null; },
+      renderHTML: (attrs: Record<string, unknown>) => Number.isInteger(attrs[key]) && Number(attrs[key]) >= 0 && Number(attrs[key]) <= 120 ? { style: `${key === "spaceBefore" ? "margin-top" : "margin-bottom"}: ${attrs[key]}px` } : {},
+    }])),
+    ...paginationAttributes,
     indent: { default: 0, parseHTML: el => Math.max(0, Math.min(6, Number(el.getAttribute("data-indent")) || 0)),
       renderHTML: attrs => attrs.indent > 0 && attrs.indent <= 6 ? { "data-indent": attrs.indent, style: `margin-inline-start: ${attrs.indent * 1.5}em` } : {} },
   } }]; },
@@ -45,6 +60,7 @@ type Props = { label: string; name?: string; value: string; document?: RichTextD
 export default function RichTextEditor({ label, name, value, document, onChange, disabled = false, compact = false, required = false, defaultColor = "#231f1c" }: Props) {
   const id = useId();
   const selection = useRef<{ from: number; to: number } | null>(null);
+  const [spacingDialog, setSpacingDialog] = useState<ParagraphSpacing | null>(null);
   const [menuLeft, setMenuLeft] = useState(0);
   const [openMenu, setOpenMenu] = useState<"alignment" | "spacing" | null>(null);
   const menuGroup = useRef<HTMLDivElement>(null);
@@ -60,7 +76,7 @@ export default function RichTextEditor({ label, name, value, document, onChange,
   const selected = useEditorState({ editor, selector: ({ editor }) => {
     if (!editor) return null;
     const attrs = editor.getAttributes(editor.isActive("heading") ? "heading" : "paragraph");
-    return { bold: editor.isActive("bold"), italic: editor.isActive("italic"), underline: editor.isActive("underline"), size: editor.getAttributes("textStyle").fontSize ?? "", color: normalizeTextColor(editor.getAttributes("textStyle").color) ?? "", family: editor.getAttributes("textStyle").fontFamily ?? "", heading: editor.isActive("heading") ? String(attrs.level) : "paragraph", align: attrs.textAlign ?? "left", lineHeight: attrs.lineHeight ?? "", indent: attrs.indent ?? 0, bullet: editor.isActive("bulletList"), ordered: editor.isActive("orderedList"), undo: editor.can().undo(), redo: editor.can().redo() };
+    return { bold: editor.isActive("bold"), italic: editor.isActive("italic"), underline: editor.isActive("underline"), size: editor.getAttributes("textStyle").fontSize ?? "", color: normalizeTextColor(editor.getAttributes("textStyle").color) ?? "", family: editor.getAttributes("textStyle").fontFamily ?? "", heading: editor.isActive("heading") ? String(attrs.level) : "paragraph", align: attrs.textAlign ?? "left", lineHeight: attrs.lineHeight ?? "", spaceBefore: attrs.spaceBefore ?? 0, spaceAfter: attrs.spaceAfter ?? 12, keepWithNext: attrs.keepWithNext ?? false, keepTogether: attrs.keepTogether ?? false, widowControl: attrs.widowControl ?? true, pageBreakBefore: attrs.pageBreakBefore ?? false, indent: attrs.indent ?? 0, bullet: editor.isActive("bulletList"), ordered: editor.isActive("orderedList"), undo: editor.can().undo(), redo: editor.can().redo() };
   } });
 
   useEffect(() => { if (editor) editor.setEditable(!disabled, false); }, [editor, disabled]);
@@ -103,7 +119,7 @@ export default function RichTextEditor({ label, name, value, document, onChange,
     if (next) {
       const trigger = (kind === "alignment" ? alignTrigger : spacingTrigger).current;
       const left = trigger?.getBoundingClientRect().left ?? 0;
-      const width = kind === "alignment" ? 190 : 150;
+      const width = kind === "alignment" ? 190 : 280;
       setMenuLeft(Math.max(8, Math.min(left, window.innerWidth - width - 8)) - left);
     }
     setOpenMenu(next);
@@ -163,8 +179,15 @@ export default function RichTextEditor({ label, name, value, document, onChange,
         <div className={styles.dropdown}>
           <button ref={spacingTrigger} type="button" className={styles.menuTrigger} aria-label={`${label} 줄 간격 메뉴`} title="줄 간격" aria-haspopup="menu" aria-expanded={openMenu === "spacing"} disabled={inactive} onMouseDown={preventFocus} onClick={() => toggleMenu("spacing")}><EditorIcon name="spacing"/><EditorIcon name="chevron"/></button>
           {openMenu === "spacing" && <div className={`${styles.menu} ${styles.spacingMenu}`} style={{ left: menuLeft }} role="menu" aria-label={`${label} 줄 간격`}>
-            <button type="button" role="menuitemradio" aria-checked={!selected?.lineHeight} onMouseDown={preventFocus} onClick={() => { layout({ lineHeight: null }); setOpenMenu(null); }}>기본 간격</button>
-            {lineHeights.map(height => <button key={height} type="button" role="menuitemradio" aria-label={`${label} 줄 간격 ${height}배`} aria-checked={selected?.lineHeight === height} onMouseDown={preventFocus} onClick={() => { layout({ lineHeight: height }); setOpenMenu(null); }}>{height}배</button>)}
+            {([{ height: "1", text: "한 줄 간격" }, { height: "1.15", text: "1.15" }, { height: "1.5", text: "1.5" }, { height: "2", text: "두 줄 간격" }] as const).map(option => <button key={option.height} type="button" role="menuitemradio" aria-label={`${label} ${option.text}`} aria-checked={selected?.lineHeight === option.height} onMouseDown={preventFocus} onClick={() => { layout({ lineHeight: option.height }); setOpenMenu(null); }}>{option.text}</button>)}
+            <div className={styles.menuDivider}/>
+            <button type="button" role="menuitem" onMouseDown={preventFocus} onClick={() => { layout({ spaceBefore: selected?.spaceBefore ? 0 : 12 }); setOpenMenu(null); }}>{selected?.spaceBefore ? "단락 앞에 공백 삭제" : "단락 앞에 공백 추가"}</button>
+            <button type="button" role="menuitem" onMouseDown={preventFocus} onClick={() => { layout({ spaceAfter: selected?.spaceAfter ? 0 : 12 }); setOpenMenu(null); }}>{selected?.spaceAfter ? "단락 뒤에 공백 삭제" : "단락 뒤에 공백 추가"}</button>
+            <div className={styles.menuDivider}/>
+            <button type="button" role="menuitem" onMouseDown={preventFocus} onClick={() => { setSpacingDialog({ lineHeight: selected?.lineHeight || "1.8", spaceBefore: selected?.spaceBefore ?? 0, spaceAfter: selected?.spaceAfter ?? 12 }); setOpenMenu(null); }}>맞춤 간격</button>
+            <div className={styles.menuDivider}/>
+            {([{ key: "keepWithNext", text: "다음 문단과 함께 표시" }, { key: "keepTogether", text: "줄 함께 표시" }, { key: "widowControl", text: "한 줄 누락 방지" }, { key: "pageBreakBefore", text: "앞에 페이지 나누기 추가" }] as const).map(option => <button key={option.key} type="button" role="menuitemcheckbox" aria-label={option.text} aria-checked={Boolean(selected?.[option.key])} onMouseDown={preventFocus} onClick={() => { layout({ [option.key]: !selected?.[option.key] }); setOpenMenu(null); }}>{option.text}</button>)}
+            <p className={styles.menuHint}>페이지 관련 옵션은 인쇄·PDF에 적용됩니다.</p>
           </div>}
         </div>
       </div>
@@ -175,9 +198,10 @@ export default function RichTextEditor({ label, name, value, document, onChange,
       <div className={styles.group}>
         <button type="button" aria-label={`${label} 실행 취소`} title="실행 취소" disabled={inactive || !selected?.undo} onMouseDown={preventFocus} onClick={() => chain()?.undo().run()}><EditorIcon name="undo"/></button>
         <button type="button" aria-label={`${label} 다시 실행`} title="다시 실행" disabled={inactive || !selected?.redo} onMouseDown={preventFocus} onClick={() => chain()?.redo().run()}><EditorIcon name="redo"/></button>
-        <button type="button" aria-label={`${label} 서식 지우기`} title="서식 지우기" disabled={inactive} onMouseDown={preventFocus} onClick={() => chain()?.clearNodes().unsetAllMarks().updateAttributes("paragraph", { textAlign: null, lineHeight: null, indent: 0 }).run()}><EditorIcon name="clear"/></button>
+        <button type="button" aria-label={`${label} 서식 지우기`} title="서식 지우기" disabled={inactive} onMouseDown={preventFocus} onClick={() => chain()?.clearNodes().unsetAllMarks().updateAttributes("paragraph", { textAlign: null, lineHeight: null, indent: 0, spaceBefore: null, spaceAfter: null, keepWithNext: null, keepTogether: null, widowControl: null, pageBreakBefore: null }).run()}><EditorIcon name="clear"/></button>
       </div>
     </div>
+    <ParagraphSpacingDialog initial={spacingDialog} onApply={values => { layout(values); setSpacingDialog(null); }} onCancel={() => { setSpacingDialog(null); chain()?.run(); }}/>
     {editor ? <EditorContent editor={editor} className={styles.area}/> : <div className={styles.loading}><LoadingIndicator message="편집기 불러오는 중"/></div>}
   </div>;
 }
